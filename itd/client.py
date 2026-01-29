@@ -4,6 +4,7 @@ from itd.hashtags import get_hastags, get_posts_by_hastag
 from itd.notifications import get_notifications, mark_as_read, mark_all_as_read, get_unread_notifications_count
 from itd.posts import create_post, get_posts, get_post, edit_post, delete_post, pin_post, repost, view_post
 from itd.reports import report
+from itd.search import search
 
 
 class Client:
@@ -79,13 +80,23 @@ class Client:
 
 
     def report(self, id: str, type: str = 'post', reason: str = 'other', description: str = ''):
-        return report(id, type, reason, description)
+        return report(self.token, id, type, reason, description)
 
     def report_user(self, id: str, reason: str = 'other', description: str = ''):
-        return report(id, 'user', reason, description)
+        return report(self.token, id, 'user', reason, description)
 
     def report_post(self, id: str, reason: str = 'other', description: str = ''):
-        return report(id, 'post', reason, description)
+        return report(self.token, id, 'post', reason, description)
 
     def report_comment(self, id: str, reason: str = 'other', description: str = ''):
-        return report(id, 'comment', reason, description)
+        return report(self.token, id, 'comment', reason, description)
+
+
+    def search(self, query: str, user_limit: int = 5, hashtag_limit: int = 5):
+        return search(self.token, query, user_limit, hashtag_limit)
+
+    def search_user(self, query: str, limit: int = 5):
+        return search(self.token, query, limit, 0)
+
+    def search_hashtag(self, query: str, limit: int = 5):
+        return search(self.token, query, 0, limit)
