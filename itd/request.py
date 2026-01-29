@@ -3,8 +3,8 @@ from requests import Session
 s = Session()
 
 
-def fetch(token: str, method: str, url: str):
-    res = eval(f's.{method}')(f'https://итд.com/api/{url}', headers={
+def fetch(token: str, method: str, url: str, params: dict = {}):
+    res = eval(f's.{method}')(f'https://итд.com/api/{url}', params=params, headers={
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3",
         "Accept-Encoding": "gzip, deflate, br, zstd",
