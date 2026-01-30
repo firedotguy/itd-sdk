@@ -19,6 +19,10 @@ c = ITDClient('TOKEN', 'refresh_token=...; __ddg1_=...; __ddgid_=...; is_auth=1;
 print(c.get_me())
 ```
 
+> [!NOTE]
+> Берите куки из запроса /auth/refresh. В остальных запросах нету refresh_token
+> ![cookie](cookie-screen.png)
+
 ---
 ### Скрипт на обновление имени
 ```python
