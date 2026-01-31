@@ -1,10 +1,12 @@
+from uuid import UUID
+
 from itd.request import fetch
 
 
 def get_user(token: str, username: str):
     return fetch(token, 'get', f'users/{username}')
 
-def update_profile(token: str, bio: str | None = None, display_name: str | None = None, username: str | None = None, banner_id: str | None = None):
+def update_profile(token: str, bio: str | None = None, display_name: str | None = None, username: str | None = None, banner_id: UUID | None = None):
     data = {}
     if bio:
         data['bio'] = bio
@@ -13,14 +15,14 @@ def update_profile(token: str, bio: str | None = None, display_name: str | None 
     if username:
         data['username'] = username
     if banner_id:
-        data['bannerId'] = banner_id
+        data['bannerId'] = str(banner_id)
     return fetch(token, 'put', 'users/me', data)
 
 def update_privacy(token: str, wall_closed: bool = False, private: bool = False):
     data = {}
-    if wall_closed:
+    if wall_closed is not None:
         data['wallClosed'] = wall_closed
-    if private:
+    if private is not None:
         data['isPrivate'] = private
     return fetch(token, 'put', 'users/me/privacy', data)
 

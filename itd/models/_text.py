@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 from itd.models.user import UserPost
 
 
-class _TextObject(BaseModel):
+class TextObject(BaseModel):
     id: UUID
     content: str
     author: UserPost

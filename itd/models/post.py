@@ -1,10 +1,10 @@
 from pydantic import Field
 
 from itd.models.user import UserPost
-from itd.models._text import _TextObject
+from itd.models._text import TextObject
 
 
-class PostShort(_TextObject):
+class PostShort(TextObject):
     likes_count: int = Field(0, alias='likesCount')
     comments_count: int = Field(0, alias='commentsCount')
     reposts_count: int = Field(0, alias='repostsCount')

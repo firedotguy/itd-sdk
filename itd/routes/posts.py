@@ -18,7 +18,7 @@ def get_posts(token: str, username: str | None = None, limit: int = 20, cursor: 
     if tab:
         data['tab'] = tab
 
-    return fetch(token, 'get', 'posts', data)['data']
+    return fetch(token, 'get', 'posts', data)
 
 def get_post(token: str, id: str):
     return fetch(token, 'get', f'posts/{id}')
@@ -43,3 +43,5 @@ def view_post(token: str, id: str):
 
 def get_liked_posts(token: str, username: str, limit: int = 20, cursor: int = 0):
     return fetch(token, 'get', f'posts/user/{username}/liked', {'limit': limit, 'cursor': cursor})
+
+# todo post restore
