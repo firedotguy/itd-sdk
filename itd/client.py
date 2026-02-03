@@ -281,7 +281,7 @@ class Client:
 
         return [UserFollower.model_validate(user) for user in res.json()['data']['users']], Pagination.model_validate(res.json()['data']['pagination'])
 
-
+    @deprecated("verificate устарел используйте verify")
     @refresh_on_error
     def verificate(self, file_url: str) -> Verification:
         """Отправить запрос на верификацию
@@ -295,6 +295,21 @@ class Client:
         Returns:
             Verification: Верификация
         """
+        return self.verify(file_url)
+
+    @refresh_on_error
+    def verify(self, file_url: str) -> Verification:
+        """Отправить запрос на верификацию
+
+            Args:
+                file_url (str): Ссылка на видео
+
+            Raises:
+                PendingRequestExists: Запрос уже отправлен
+
+            Returns:
+                Verification: Верификация
+            """
         res = verificate(self.token, file_url)
         if res.json().get('error', {}).get('code') == 'PENDING_REQUEST_EXISTS':
             raise PendingRequestExists()
@@ -313,7 +328,6 @@ class Client:
         res.raise_for_status()
 
         return VerificationStatus.model_validate(res.json())
-
 
     @refresh_on_error
     def get_who_to_follow(self) -> list[UserWhoToFollow]:
