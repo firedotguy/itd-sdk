@@ -331,7 +331,7 @@ class Client:
 
     @refresh_on_error
     def get_who_to_follow(self) -> list[UserWhoToFollow]:
-        """Получить список популярнык пользователей (кого читать)
+        """Получить список популярных пользователей (кого читать)
 
         Returns:
             list[UserWhoToFollow]: Список пользователей
