@@ -8,7 +8,7 @@ class File(BaseModel):
     id: UUID
     url: str
     filename: str
-    mime_type: str = Field('image/png', alias='mimeType')
+    mime_type: str = Field(alias='mimeType')
     size: int
 
 
