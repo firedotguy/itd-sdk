@@ -1,3 +1,4 @@
+from functools import wraps
 from uuid import UUID
 from _io import BufferedReader
 from typing import cast
@@ -30,11 +31,12 @@ from itd.exceptions import NoCookie, NoAuthData, SamePassword, InvalidOldPasswor
 
 
 def refresh_on_error(func):
+    @wraps(func)
     def wrapper(self, *args, **kwargs):
         try:
             return func(self, *args, **kwargs)
         except HTTPError as e:
-            if '401' in str(e):
+            if e.response.status_code == 401:
                 self.refresh_auth()
                 return func(self, *args, **kwargs)
             raise e
