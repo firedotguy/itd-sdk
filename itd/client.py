@@ -367,12 +367,14 @@ class Client:
 
 
     @refresh_on_error
-    def add_comment(self, post_id: UUID, content: str) -> Comment:
+    def add_comment(self, post_id: UUID, content: str, attachment_ids: list[UUID] = []) -> Comment:
         """Добавить комментарий
 
         Args:
             post_id (str): UUID поста
             content (str): Содержание
+            attachment_ids (list[UUID]): Список UUID прикреплённых файлов
+            reply_comment_id (UUID | None, optional): ID коммента для ответа. Defaults to None.
 
         Raises:
             ValidationError: Ошибка валидации
@@ -381,7 +383,7 @@ class Client:
         Returns:
             Comment: Комментарий
         """
-        res = add_comment(self.token, post_id, content)
+        res = add_comment(self.token, post_id, content, attachment_ids)
         if res.status_code == 422 and 'found' in res.json():
             raise ValidationError(*list(res.json()['found'].items())[0])
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
@@ -392,13 +394,14 @@ class Client:
 
 
     @refresh_on_error
-    def add_reply_comment(self, comment_id: UUID, content: str, author_id: UUID) -> Comment:
+    def add_reply_comment(self, comment_id: UUID, content: str, author_id: UUID, attachment_ids: list[UUID] = []) -> Comment:
         """Добавить ответный комментарий
 
         Args:
             comment_id (str): UUID комментария
             content (str): Содержание
             author_id (UUID | None, optional): ID пользователя, отправившего комментарий. Defaults to None.
+            attachment_ids (list[UUID]): Список UUID прикреплённых файлов
 
         Raises:
             ValidationError: Ошибка валидации
@@ -407,7 +410,7 @@ class Client:
         Returns:
             Comment: Комментарий
         """
-        res = add_reply_comment(self.token, comment_id, content, author_id)
+        res = add_reply_comment(self.token, comment_id, content, author_id, attachment_ids)
         if res.status_code == 500 and 'Failed query' in res.text:
             raise NotFound('User')
         if res.status_code == 422 and 'found' in res.json():
