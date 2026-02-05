@@ -158,14 +158,14 @@ class Client:
         return self.get_user('me')
 
     @refresh_on_error
-    def update_profile(self, username: str | None = None, display_name: str | None = None, bio: str | None = None, banner_id: UUID | None = None) -> UserProfileUpdate:
+    def update_profile(self, username: str | None = None, display_name: str | None = None, bio: str | None = None, banner_id: UUID | str | None = None) -> UserProfileUpdate:
         """Обновить профиль
 
         Args:
             username (str | None, optional): username. Defaults to None.
             display_name (str | None, optional): Отображаемое имя. Defaults to None.
             bio (str | None, optional): Биография (о себе). Defaults to None.
-            banner_id (UUID | None, optional): UUID баннера. Defaults to None.
+            banner_id (UUID | str | None, optional): UUID баннера. Defaults to None.
 
         Raises:
             ValidationError: Ошибка валидации
@@ -173,6 +173,9 @@ class Client:
         Returns:
             UserProfileUpdate: Обновленный профиль
         """
+        if isinstance(banner_id, str):
+            banner_id = UUID(banner_id)
+
         res = update_profile(self.token, bio, display_name, username, banner_id)
         if res.status_code == 422 and 'found' in res.json():
             raise ValidationError(*list(res.json()['found'].items())[0])
@@ -373,14 +376,13 @@ class Client:
 
 
     @refresh_on_error
-    def add_comment(self, post_id: UUID, content: str, attachment_ids: list[UUID] = []) -> Comment:
+    def add_comment(self, post_id: UUID | str, content: str, attachment_ids: list[UUID | str] = []) -> Comment:
         """Добавить комментарий
 
         Args:
-            post_id (str): UUID поста
+            post_id (str | UUID): UUID поста
             content (str): Содержание
-            attachment_ids (list[UUID]): Список UUID прикреплённых файлов
-            reply_comment_id (UUID | None, optional): ID коммента для ответа. Defaults to None.
+            attachment_ids (list[UUID | str]): Список UUID прикреплённых файлов
 
         Raises:
             ValidationError: Ошибка валидации
@@ -389,6 +391,10 @@ class Client:
         Returns:
             Comment: Комментарий
         """
+        if isinstance(post_id, str):
+            post_id = UUID(post_id)
+        attachment_ids = list(map(lambda id: UUID(id) if isinstance(id, str) else id, attachment_ids))
+
         res = add_comment(self.token, post_id, content, attachment_ids)
         if res.status_code == 422 and 'found' in res.json():
             raise ValidationError(*list(res.json()['found'].items())[0])
@@ -400,14 +406,14 @@ class Client:
 
 
     @refresh_on_error
-    def add_reply_comment(self, comment_id: UUID, content: str, author_id: UUID, attachment_ids: list[UUID] = []) -> Comment:
+    def add_reply_comment(self, comment_id: UUID | str, content: str, author_id: UUID | str, attachment_ids: list[UUID | str] = []) -> Comment:
         """Добавить ответный комментарий
 
         Args:
-            comment_id (str): UUID комментария
+            comment_id (str | UUID): UUID комментария
             content (str): Содержание
-            author_id (UUID | None, optional): ID пользователя, отправившего комментарий. Defaults to None.
-            attachment_ids (list[UUID]): Список UUID прикреплённых файлов
+            author_id (UUID | str): ID пользователя, отправившего комментарий.
+            attachment_ids (list[UUID | str]): Список UUID прикреплённых файлов
 
         Raises:
             ValidationError: Ошибка валидации
@@ -416,6 +422,12 @@ class Client:
         Returns:
             Comment: Комментарий
         """
+        if isinstance(comment_id, str):
+            comment_id = UUID(comment_id)
+        if isinstance(author_id, str):
+            author_id = UUID(author_id)
+        attachment_ids = list(map(lambda id: UUID(id) if isinstance(id, str) else id, attachment_ids))
+
         res = add_reply_comment(self.token, comment_id, content, author_id, attachment_ids)
         if res.status_code == 500 and 'Failed query' in res.text:
             raise NotFound('User')
@@ -429,11 +441,11 @@ class Client:
 
 
     @refresh_on_error
-    def get_comments(self, post_id: UUID, limit: int = 20, cursor: int = 0, sort: str = 'popular') -> tuple[list[Comment], Pagination]:
+    def get_comments(self, post_id: UUID | str, limit: int = 20, cursor: int = 0, sort: str = 'popular') -> tuple[list[Comment], Pagination]:
         """Получить список комментариев
 
         Args:
-            post_id (UUID): UUID поста
+            post_id (UUID | str): UUID поста
             limit (int, optional): Лимит. Defaults to 20.
             cursor (int, optional): Курсор (сколько пропустить). Defaults to 0.
             sort (str, optional): Сортировка. Defaults to 'popular'.
@@ -445,6 +457,9 @@ class Client:
             list[Comment]: Список комментариев
             Pagination: Пагинация
         """
+        if isinstance(post_id, str):
+            post_id = UUID(post_id)
+
         res = get_comments(self.token, post_id, limit, cursor, sort)
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('Post')
@@ -454,11 +469,11 @@ class Client:
         return [Comment.model_validate(comment) for comment in data['comments']], Pagination(page=(cursor // limit) or 1, limit=limit, total=data['total'], hasMore=data['hasMore'], nextCursor=None)
 
     @refresh_on_error
-    def like_comment(self, id: UUID) -> int:
+    def like_comment(self, id: UUID | str) -> int:
         """Лайкнуть комментарий
 
         Args:
-            id (UUID): UUID комментария
+            id (UUID | str): UUID комментария
 
         Raises:
             NotFound: Комментарий не найден
@@ -466,6 +481,9 @@ class Client:
         Returns:
             int: Количество лайков
         """
+        if isinstance(id, str):
+            id = UUID(id)
+
         res = like_comment(self.token, id)
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('Comment')
@@ -474,11 +492,11 @@ class Client:
         return res.json()['likesCount']
 
     @refresh_on_error
-    def unlike_comment(self, id: UUID) -> int:
+    def unlike_comment(self, id: UUID | str) -> int:
         """Убрать лайк с комментария
 
         Args:
-            id (UUID): UUID комментария
+            id (UUID | str): UUID комментария
 
         Raises:
             NotFound: Комментарий не найден
@@ -486,6 +504,9 @@ class Client:
         Returns:
             int: Количество лайков
         """
+        if isinstance(id, str):
+            id = UUID(id)
+
         res = unlike_comment(self.token, id)
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('Comment')
@@ -494,16 +515,19 @@ class Client:
         return res.json()['likesCount']
 
     @refresh_on_error
-    def delete_comment(self, id: UUID) -> None:
+    def delete_comment(self, id: UUID | str) -> None:
         """Удалить комментарий
 
         Args:
-            id (UUID): UUID комментария
+            id (UUID | str): UUID комментария
 
         Raises:
             NotFound: Комментарий не найден
             Forbidden: Нет прав на удаление
         """
+        if isinstance(id, str):
+            id = UUID(id)
+
         res = delete_comment(self.token, id)
         if res.status_code == 204:
             return
@@ -542,19 +566,22 @@ class Client:
         return [Hashtag.model_validate(hashtag) for hashtag in res.json()['data']['hashtags']]
 
     @refresh_on_error
-    def get_posts_by_hashtag(self, hashtag: str, limit: int = 20, cursor: UUID | None = None) -> tuple[Hashtag | None, list[Post], Pagination]:
+    def get_posts_by_hashtag(self, hashtag: str, limit: int = 20, cursor: UUID | str | None = None) -> tuple[Hashtag | None, list[Post], Pagination]:
         """Получить посты по хэштэгу
 
         Args:
             hashtag (str): Хэштэг (без #)
             limit (int, optional): Лимит. Defaults to 20.
-            cursor (UUID | None, optional): Курсор (UUID последнего поста, после которого брать данные). Defaults to None.
+            cursor (UUID | str | None, optional): Курсор (UUID последнего поста, после которого брать данные). Defaults to None.
 
         Returns:
             Hashtag | None: Хэштэг
             list[Post]: Посты
             Pagination: Пагинация
         """
+        if isinstance(cursor, str):
+            cursor = UUID(cursor)
+
         res = get_posts_by_hashtag(self.token, hashtag, limit, cursor)
         res.raise_for_status()
         data = res.json()['data']
@@ -583,15 +610,18 @@ class Client:
         )
 
     @refresh_on_error
-    def mark_as_read(self, id: UUID) -> bool:
+    def mark_as_read(self, id: UUID | str) -> bool:
         """Прочитать уведомление
 
         Args:
-            id (UUID): UUID уведомления
+            id (UUID | str): UUID уведомления
 
         Returns:
             bool: Успешно (False - уже прочитано)
         """
+        if isinstance(id, str):
+            id = UUID(id)
+
         res = mark_as_read(self.token, id)
         res.raise_for_status()
 
@@ -618,13 +648,13 @@ class Client:
 
 
     @refresh_on_error
-    def create_post(self, content: str, wall_recipient_id: UUID | None = None, attach_ids: list[UUID] = []) -> NewPost:
+    def create_post(self, content: str, wall_recipient_id: UUID | str | None = None, attach_ids: list[UUID | str] = []) -> NewPost:
         """Создать пост
 
         Args:
             content (str): Содержимое
-            wall_recipient_id (UUID | None, optional): UUID пользователя (чтобы создать пост ему на стене). Defaults to None.
-            attach_ids (list[UUID], optional): UUID вложений. Defaults to [].
+            wall_recipient_id (UUID | str | None, optional): UUID пользователя (чтобы создать пост ему на стене). Defaults to None.
+            attach_ids (list[UUID | str], optional): UUID вложений. Defaults to [].
 
         Raises:
             NotFound: Пользователь не найден
@@ -633,6 +663,10 @@ class Client:
         Returns:
             NewPost: Новый пост
         """
+        if isinstance(wall_recipient_id, str):
+            wall_recipient_id = UUID(wall_recipient_id)
+        attach_ids = list(map(lambda id: UUID(id) if isinstance(id, str) else id, attach_ids))
+
         res = create_post(self.token, content, wall_recipient_id, attach_ids)
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('Wall recipient')
@@ -661,11 +695,11 @@ class Client:
         return [Post.model_validate(post) for post in data['posts']], PostsPagintaion.model_validate(data['pagination'])
 
     @refresh_on_error
-    def get_post(self, id: UUID) -> Post:
+    def get_post(self, id: UUID | str) -> Post:
         """Получить пост
 
         Args:
-            id (UUID): UUID поста
+            id (UUID | str): UUID поста
 
         Raises:
             NotFound: Пост не найден
@@ -673,6 +707,9 @@ class Client:
         Returns:
             Post: Пост
         """
+        if isinstance(id, str):
+            id = UUID(id)
+
         res = get_post(self.token, id)
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('Post')
@@ -681,11 +718,11 @@ class Client:
         return Post.model_validate(res.json()['data'])
 
     @refresh_on_error
-    def edit_post(self, id: UUID, content: str) -> str:
+    def edit_post(self, id: UUID | str, content: str) -> str:
         """Редактировать пост
 
         Args:
-            id (UUID): UUID поста
+            id (UUID | str): UUID поста
             content (str): Содержимое
 
         Raises:
@@ -696,6 +733,9 @@ class Client:
         Returns:
             str: Новое содержимое
         """
+        if isinstance(id, str):
+            id = UUID(id)
+
         res = edit_post(self.token, id, content)
 
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
@@ -709,16 +749,19 @@ class Client:
         return res.json()['content']
 
     @refresh_on_error
-    def delete_post(self, id: UUID) -> None:
+    def delete_post(self, id: UUID | str) -> None:
         """Удалить пост
 
         Args:
-            id (UUID): UUID поста
+            id (UUID | str): UUID поста
 
         Raises:
             NotFound: Пост не найден
             Forbidden: Нет доступа
         """
+        if isinstance(id, str):
+            id = UUID(id)
+
         res = delete_post(self.token, id)
         if res.status_code == 204:
             return
@@ -730,16 +773,19 @@ class Client:
         res.raise_for_status()
 
     @refresh_on_error
-    def pin_post(self, id: UUID):
+    def pin_post(self, id: UUID | str):
         """Закрепить пост
 
         Args:
-            id (UUID): UUID поста
+            id (UUID | str): UUID поста
 
         Raises:
             NotFound: Пост не найден
             Forbidden: Нет доступа
         """
+        if isinstance(id, str):
+            id = UUID(id)
+
         res = pin_post(self.token, id)
 
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
@@ -749,11 +795,11 @@ class Client:
         res.raise_for_status()
 
     @refresh_on_error
-    def repost(self, id: UUID, content: str | None = None) -> NewPost:
+    def repost(self, id: UUID | str, content: str | None = None) -> NewPost:
         """Репостнуть пост
 
         Args:
-            id (UUID): UUID поста
+            id (UUID | str): UUID поста
             content (str | None, optional): Содержимое (доп. комментарий). Defaults to None.
 
         Raises:
@@ -765,6 +811,9 @@ class Client:
         Returns:
             NewPost: Новый пост
         """
+        if isinstance(id, str):
+            id = UUID(id)
+
         res = repost(self.token, id, content)
 
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
@@ -780,15 +829,18 @@ class Client:
         return NewPost.model_validate(res.json())
 
     @refresh_on_error
-    def view_post(self, id: UUID) -> None:
+    def view_post(self, id: UUID | str) -> None:
         """Просмотреть пост
 
         Args:
-            id (UUID): UUID поста
+            id (UUID | str): UUID поста
 
         Raises:
             NotFound: Пост не найден
         """
+        if isinstance(id, str):
+            id = UUID(id)
+
         res = view_post(self.token, id)
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('Post')
@@ -806,19 +858,27 @@ class Client:
 
 
     @refresh_on_error
-    def report(self, id: str, type: str = 'post', reason: str = 'other', description: str = ''):
+    def report(self, id: str | UUID, type: str = 'post', reason: str = 'other', description: str = ''):
+        if isinstance(id, str):
+            id = UUID(id)
         return report(self.token, id, type, reason, description)
 
     @refresh_on_error
-    def report_user(self, id: str, reason: str = 'other', description: str = ''):
+    def report_user(self, id: str | UUID, reason: str = 'other', description: str = ''):
+        if isinstance(id, str):
+            id = UUID(id)
         return report(self.token, id, 'user', reason, description)
 
     @refresh_on_error
-    def report_post(self, id: str, reason: str = 'other', description: str = ''):
+    def report_post(self, id: str | UUID, reason: str = 'other', description: str = ''):
+        if isinstance(id, str):
+            id = UUID(id)
         return report(self.token, id, 'post', reason, description)
 
     @refresh_on_error
-    def report_comment(self, id: str, reason: str = 'other', description: str = ''):
+    def report_comment(self, id: str | UUID, reason: str = 'other', description: str = ''):
+        if isinstance(id, str):
+            id = UUID(id)
         return report(self.token, id, 'comment', reason, description)
 
 
