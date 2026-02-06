@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from pydantic import Field
+from pydantic import Field, BaseModel
 
 from itd.models.user import UserPost, UserNewPost
 from itd.models._text import TextObject
@@ -45,3 +45,7 @@ class Post(_Post, PostShort):
 class NewPost(_Post):
     author: UserNewPost
 
+
+class LikePostResponse(BaseModel):
+    liked: bool
+    likes_count: int = Field(alias="likesCount")

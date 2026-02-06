@@ -39,5 +39,11 @@ def view_post(token: str, id: UUID):
 def get_liked_posts(token: str, username_or_id: str | UUID, limit: int = 20, cursor: int = 0):
     return fetch(token, 'get', f'posts/user/{username_or_id}/liked', {'limit': limit})
 
-# todo post restore
-# todo post like
+def restore_post(token: str, post_id: UUID):
+    return fetch(token, "post", f"posts/{post_id}/restore",)
+
+def like_post(token: str, post_id: UUID):
+    return fetch(token, "post", f"posts/{post_id}/like")
+
+def delete_like_post(token: str, post_id: UUID):
+    return fetch(token, "delete", f"posts/{post_id}/like")

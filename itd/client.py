@@ -10,7 +10,7 @@ from itd.routes.etc import get_top_clans, get_who_to_follow, get_platform_status
 from itd.routes.comments import get_comments, add_comment, delete_comment, like_comment, unlike_comment, add_reply_comment
 from itd.routes.hashtags import get_hashtags, get_posts_by_hashtag
 from itd.routes.notifications import get_notifications, mark_as_read, mark_all_as_read, get_unread_notifications_count
-from itd.routes.posts import create_post, get_posts, get_post, edit_post, delete_post, pin_post, repost, view_post, get_liked_posts
+from itd.routes.posts import create_post, get_posts, get_post, edit_post, delete_post, pin_post, repost, view_post, get_liked_posts, restore_post, like_post, delete_like_post
 from itd.routes.reports import report
 from itd.routes.search import search
 from itd.routes.files import upload_file
@@ -19,7 +19,7 @@ from itd.routes.verification import verify, get_verification_status
 
 from itd.models.comment import Comment
 from itd.models.notification import Notification
-from itd.models.post import Post, NewPost
+from itd.models.post import Post, NewPost, LikePostResponse
 from itd.models.clan import Clan
 from itd.models.hashtag import Hashtag
 from itd.models.user import User, UserProfileUpdate, UserPrivacy, UserFollower, UserWhoToFollow
@@ -902,3 +902,36 @@ class Client:
     def update_banner(self, name: str) -> UserProfileUpdate:
         id = self.upload_file(name, cast(BufferedReader, open(name, 'rb')))['id']
         return self.update_profile(banner_id=id)
+
+    @refresh_on_error
+    def restore_post(self, post_id: UUID) -> None:
+        """Восстановить удалённый пост
+
+        Args:
+            post_id: UUID поста
+        """
+        restore_post(self.token, post_id)
+
+    @refresh_on_error
+    def like_post(self, post_id: UUID) -> LikePostResponse:
+        """Поставить лайк на пост
+
+        Args:
+            post_id: UUID поста
+        """
+        res = like_post(self.token, post_id)
+        if res.status_code == 404:
+            raise NotFound("Post not found")
+        return LikePostResponse.model_validate(res.json())
+
+    @refresh_on_error
+    def delete_like_post(self, post_id: UUID) -> LikePostResponse:
+        """Убрать лайк с поста
+
+        Args:
+            post_id: UUID поста
+        """
+        res = delete_like_post(self.token, post_id)
+        if res.status_code == 404:
+            raise NotFound("Post not found")
+        return LikePostResponse.model_validate(res.json())
