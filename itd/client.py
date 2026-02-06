@@ -27,7 +27,7 @@ from itd.models.pagination import Pagination, PostsPagintaion, LikedPostsPaginta
 from itd.models.verification import Verification, VerificationStatus
 
 from itd.enums import PostsTab
-from itd.request import set_cookies
+from itd.request import set_cookies, read_cookies_from_str
 from itd.exceptions import (
     NoCookie, NoAuthData, SamePassword, InvalidOldPassword, NotFound, ValidationError, UserBanned,
     PendingRequestExists, Forbidden, UsernameTaken, CantFollowYourself, Unauthorized,
@@ -55,7 +55,10 @@ class Client:
         if token:
             self.token = token.replace('Bearer ', '')
         elif self.cookies:
-            set_cookies(self.cookies)
+            dict_cookies = read_cookies_from_str(cookies)
+            if "refresh_token" not in dict_cookies:
+                raise ValueError("`refresh_token` отсутствует в куки")
+            set_cookies(dict_cookies)
             self.refresh_auth()
         else:
             raise NoAuthData()

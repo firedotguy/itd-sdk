@@ -1,4 +1,5 @@
 from _io import BufferedReader
+import http.cookies
 
 from requests import Session
 from requests.exceptions import JSONDecodeError
@@ -45,9 +46,17 @@ def fetch(token: str, method: str, url: str, params: dict = {}, files: dict[str,
     return res
 
 
-def set_cookies(cookies: str):
-    for cookie in cookies.split('; '):
-        s.cookies.set(cookie.split('=')[0], cookie.split('=')[-1], path='/', domain='xn--d1ah4a.com.com')
+def read_cookies_from_str(str_cookies: str) -> dict[str, str]:
+    cookies = {}
+    for key, morsel in http.cookies.SimpleCookie(str_cookies).items():
+        cookies[key] = morsel.value
+    return cookies
+
+
+def set_cookies(cookies: dict[str, str]):
+    for key, val in cookies.items():
+        s.cookies.set(key, val, path='/', domain='xn--d1ah4a.com.com')
+
 
 def auth_fetch(cookies: str, method: str, url: str, params: dict = {}, token: str | None = None):
     headers = {
