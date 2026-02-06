@@ -395,7 +395,8 @@ class Client:
             post_id = UUID(post_id)
         attachment_ids = list(map(lambda id: UUID(id) if isinstance(id, str) else id, attachment_ids))
 
-        res = add_comment(self.token, post_id, content, attachment_ids)
+        res = add_comment(self.token, post_id, content, cast(list[UUID], attachment_ids))
+
         if res.status_code == 422 and 'found' in res.json():
             raise ValidationError(*list(res.json()['found'].items())[0])
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
@@ -428,7 +429,7 @@ class Client:
             author_id = UUID(author_id)
         attachment_ids = list(map(lambda id: UUID(id) if isinstance(id, str) else id, attachment_ids))
 
-        res = add_reply_comment(self.token, comment_id, content, author_id, attachment_ids)
+        res = add_reply_comment(self.token, comment_id, content, author_id, cast(list[UUID], attachment_ids))
         if res.status_code == 500 and 'Failed query' in res.text:
             raise NotFound('User')
         if res.status_code == 422 and 'found' in res.json():
@@ -648,13 +649,13 @@ class Client:
 
 
     @refresh_on_error
-    def create_post(self, content: str, wall_recipient_id: UUID | str | None = None, attach_ids: list[UUID | str] = []) -> NewPost:
+    def create_post(self, content: str, wall_recipient_id: UUID | str | None = None, attachment_ids: list[UUID | str] = []) -> NewPost:
         """Создать пост
 
         Args:
             content (str): Содержимое
             wall_recipient_id (UUID | str | None, optional): UUID пользователя (чтобы создать пост ему на стене). Defaults to None.
-            attach_ids (list[UUID | str], optional): UUID вложений. Defaults to [].
+            attachment_ids (list[UUID | str], optional): UUID вложений. Defaults to [].
 
         Raises:
             NotFound: Пользователь не найден
@@ -665,9 +666,9 @@ class Client:
         """
         if isinstance(wall_recipient_id, str):
             wall_recipient_id = UUID(wall_recipient_id)
-        attach_ids = list(map(lambda id: UUID(id) if isinstance(id, str) else id, attach_ids))
+        attachment_ids = list(map(lambda id: UUID(id) if isinstance(id, str) else id, attachment_ids))
 
-        res = create_post(self.token, content, wall_recipient_id, attach_ids)
+        res = create_post(self.token, content, wall_recipient_id, cast(list[UUID], attachment_ids))
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('Wall recipient')
         if res.status_code == 422 and 'found' in res.json():
@@ -849,7 +850,7 @@ class Client:
         res.raise_for_status()
 
     @refresh_on_error
-    def get_liked_posts(self, username_or_id: str | UUID, limit: int = 20, cursor: int = 0):
+    def get_liked_posts(self, username_or_id: str | UUID, limit: int = 20, cursor: int = 0) -> tuple[list[Post], LikedPostsPagintaion]:
         res = get_liked_posts(self.token, username_or_id, limit, cursor)
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('User')

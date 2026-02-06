@@ -3,12 +3,12 @@ from uuid import UUID
 from itd.request import fetch
 from itd.enums import PostsTab
 
-def create_post(token: str, content: str, wall_recipient_id: UUID | None = None, attach_ids: list[UUID] = []):
+def create_post(token: str, content: str, wall_recipient_id: UUID | None = None, attachment_ids: list[UUID] = []):
     data: dict = {'content': content}
     if wall_recipient_id:
         data['wallRecipientId'] = str(wall_recipient_id)
-    if attach_ids:
-        data['attachmentIds'] = list(map(str, attach_ids))
+    if attachment_ids:
+        data['attachmentIds'] = list(map(str, attachment_ids))
 
     return fetch(token, 'post', 'posts', data)
 
