@@ -1,4 +1,4 @@
-from itd.request import fetch
+from iter.request import fetch
 
 def get_hastags(token: str, limit: int = 10):
     return fetch(token, 'get', 'hashtags/trending', {'limit': limit})

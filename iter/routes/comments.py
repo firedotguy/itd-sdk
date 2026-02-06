@@ -1,4 +1,4 @@
-from itd.request import fetch
+from iter.request import fetch
 
 def add_comment(token: str, post_id: str, content: str, attachment_ids: list[str] = []):
     data = {'content': content, "attachmentIds": attachment_ids}

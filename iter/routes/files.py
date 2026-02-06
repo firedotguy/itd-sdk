@@ -1,6 +1,6 @@
 from _io import BufferedReader
 
-from itd.request import fetch
+from iter.request import fetch
 
 
 def upload_file(token: str, name: str, data: BufferedReader):

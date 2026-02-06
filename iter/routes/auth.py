@@ -1,4 +1,4 @@
-from itd.request import auth_fetch
+from iter.request import auth_fetch
 
 def refresh_token(cookies: str):
     return auth_fetch(cookies, 'post', 'v1/auth/refresh')['accessToken']

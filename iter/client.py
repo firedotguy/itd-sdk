@@ -3,17 +3,17 @@ from typing import cast
 
 from requests.exceptions import HTTPError
 
-from itd.routes.users import get_user, update_profile, follow, unfollow, get_followers, get_following, update_privacy
-from itd.routes.etc import get_top_clans, get_who_to_follow, get_platform_status
-from itd.routes.comments import get_comments, add_comment, delete_comment, like_comment, unlike_comment
-from itd.routes.hashtags import get_hastags, get_posts_by_hastag
-from itd.routes.notifications import get_notifications, mark_as_read, mark_all_as_read, get_unread_notifications_count
-from itd.routes.posts import create_post, get_posts, get_post, edit_post, delete_post, pin_post, repost, view_post, get_liked_posts
-from itd.routes.reports import report
-from itd.routes.search import search
-from itd.routes.files import upload_file
-from itd.routes.auth import refresh_token, change_password, logout
-from itd.routes.verification import verificate, get_verification_status
+from iter.routes.users import get_user, update_profile, follow, unfollow, get_followers, get_following, update_privacy
+from iter.routes.etc import get_top_clans, get_who_to_follow, get_platform_status
+from iter.routes.comments import get_comments, add_comment, delete_comment, like_comment, unlike_comment
+from iter.routes.hashtags import get_hastags, get_posts_by_hastag
+from iter.routes.notifications import get_notifications, mark_as_read, mark_all_as_read, get_unread_notifications_count
+from iter.routes.posts import create_post, get_posts, get_post, edit_post, delete_post, pin_post, repost, view_post, get_liked_posts
+from iter.routes.reports import report
+from iter.routes.search import search
+from iter.routes.files import upload_file
+from iter.routes.auth import refresh_token, change_password, logout
+from iter.routes.verification import verificate, get_verification_status
 
 
 def refresh_on_error(func):

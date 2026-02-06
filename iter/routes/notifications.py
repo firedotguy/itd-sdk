@@ -1,4 +1,4 @@
-from itd.request import fetch
+from iter.request import fetch
 
 def get_notifications(token: str, limit: int = 20, offset: int = 0, type: str | None = None):
     data = {'limit': str(limit), 'cursor': str(offset)}

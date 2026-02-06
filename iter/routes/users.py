@@ -1,4 +1,4 @@
-from itd.request import fetch
+from iter.request import fetch
 
 
 def get_user(token: str, username: str):

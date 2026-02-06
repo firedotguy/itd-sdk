@@ -67,7 +67,7 @@ c.create_post('тест1') # создание постов
 ### Кастомные запросы
 
 ```python
-from itd.request import fetch
+from iter.request import fetch
 
 fetch(c.token, 'метод', 'эндпоинт', {'данные': 'данные'})
 ```

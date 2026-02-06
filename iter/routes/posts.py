@@ -1,4 +1,4 @@
-from itd.request import fetch
+from iter.request import fetch
 
 def create_post(token: str, content: str, wall_recipient_id: int | None = None, attach_ids: list[str] = []):
     data: dict = {'content': content}
