@@ -1,42 +1,42 @@
+import logging, verboselogs
 from _io import BufferedReader
-
-from requests import Session
+from requests import Session, Response
 from typing import Optional
 from pydantic import BaseModel
 
+# Use a named logger for this module
+logger = verboselogs.VerboseLogger(__name__)
 s = Session()
 
+def dump_res(res: Response):
+    return f'> Req\n> {res.request.method} {res.request.url}\n> {res.request.body}\n\n> Res\n> {res.reason} {res.status_code}\n> {res.text}'
 
 def fetch(token: str, method: str, url: str, params: dict = {}, files: dict[str, tuple[str, BufferedReader]] = {}, response_schema: Optional[BaseModel] = None):
     base = f'https://xn--d1ah4a.com/api/{url}'
     headers = {
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3",
-        "Accept-Encoding": "gzip, deflate, br, zstd",
-        "Authorization": 'Bearer ' + token,
-        "Sec-GPC": "1",
-        "Upgrade-Insecure-Requests": "1",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-        "Priority": "u=0, i",
-        "Pragma": "no-cache",
-        "Cache-Control": "no-cache",
-        "TE": "trailers"
+        "Authorization": f'Bearer {token}',
+        "Accept": "application/json",
+        "User-Agent": "Iter-Python-Client/1.0"
     }
-    method = method.lower()
-    if method == "get":
-        res = s.get(base, timeout=120 if files else 20, params=params, headers=headers)
-    else:
-        res = s.request(method.upper(), base, timeout=20, json=params, headers=headers, files=files)
+    
+    method = method.upper()
 
-    res.raise_for_status()
+    try:
+        if method == "GET":
+            res = s.get(base, timeout=20, params=params, headers=headers)
+        else:
+            res = s.request(method, base, timeout=120 if files else 20, json=params, headers=headers, files=files)
+        
+        res.raise_for_status()
 
-    if res and res.ok and response_schema:
-        return response_schema.model_validate(res.json())
+        if res.ok and response_schema:
+            return response_schema.model_validate(res.json())
+        return res
 
-    return res
+    except Exception as e:
+        logger.error(f'Request failed: {e}')
+    finally:
+        logger.debug(dump_res(res))
 
 def set_cookies(cookies: str):
     for cookie in cookies.split('; '):

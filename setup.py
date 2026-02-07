@@ -7,7 +7,7 @@ setup(
     version=version,
     packages=find_packages(),
     install_requires=[
-        'requests', 'DrissionPage'
+        'requests', 'DrissionPage', 'verboselogs'
     ],
     python_requires=">=3.9"
 )

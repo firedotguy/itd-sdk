@@ -1,7 +1,7 @@
 from typing import Optional
-from pydantic import BaseModel
+from iter.types.base import IterBaseModel
 
-class Attachment(BaseModel):
+class Attachment(IterBaseModel):
     id: str
     type: Optional[str] = None  # "image" or "video"
     url: str

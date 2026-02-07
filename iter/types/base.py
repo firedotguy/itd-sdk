@@ -18,6 +18,16 @@ class IterBaseModel(BaseModel):
     @model_validator(mode='before')
     @classmethod
     def unwrap_data_envelope(cls, data: Any) -> Any:
-        if isinstance(data, dict) and "data" in data and len(data) == 1:
-            return data["data"]
-        return data
+        if (not isinstance(data, dict)
+            or len(data) != 1): return data
+
+        first_key = next(iter(data))
+        first_value = data[first_key]
+
+        if not first_key in ['data', 'error']: return data
+
+        return first_value
+
+class Error(IterBaseModel):
+    code: str
+    message: str

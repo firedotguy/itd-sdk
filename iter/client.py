@@ -1,3 +1,6 @@
+import logging, verboselogs
+logger = verboselogs.VerboseLogger(__name__)
+
 import json
 import os
 from _io import BufferedReader
@@ -27,7 +30,7 @@ def refresh_on_error(func):
         except HTTPError as e:
             # If Access Token is expired (401)
             if e.response is not None and e.response.status_code == 401:
-                print("Access token expired, attempting refresh")
+                logger.notice("Access token expired, attempting refresh")
                 self.auth()
                 return func(self, *args, **kwargs)
             raise e
@@ -47,6 +50,7 @@ class Client:
 
         is_auth = self.auth()
         if not is_auth:
+            logger.critical('Cannot login')
             raise RuntimeError('Cannot login')
 
     def auth(self):
@@ -59,7 +63,8 @@ class Client:
             and not self.token 
             and not self.cookies):
             self._manual_login()
-        elif self.cookies and not self.token:
+
+        if self.cookies:
             self._refresh_auth()
 
         return self.token and self.cookies
@@ -82,39 +87,42 @@ class Client:
                     self.token = data.get("token")
                     self.cookies = data.get("cookies")
             except Exception as e:
-                print(f"Failed to load session file: {e}")
+                logger.warning(f"Failed to load session file: {e}")
 
     def _manual_login(self):
         """Triggers the manual authentication flow."""
-        print("Starting manual login...")
+        if not self.manual_login:
+            logger.info('Manual login canceled')
+            return False
+        logger.info("Starting manual login")
         new_data = auth(self.email, self.password)
         if new_data:
             self.token = new_data.get('token', '').replace('Bearer ', '')
             self.cookies = new_data.get('cookies')
             self._save_session()
             return True
-        print("Manual login failed")
+        logger.warning("Manual login failed")
 
-    def _refresh_auth(self):
+    def refresh_auth(self):
         """Attempts to get a new access token using cookies. Falls back to manual login if cookies expired."""
         if not self.cookies:
             return self._manual_login()
 
         try:
-            print("Refreshing access token...")
+            logger.info("Refreshing access token")
             self.token = refresh_token(self.cookies).replace('Bearer ', '')
             self._save_session()
             return self.token
         except HTTPError as e:
             if e.response is not None and e.response.status_code in [401, 403]:
-                print("Refresh token expired. Manual login required.")
+                logger.info("Refresh token expired. Manual login required")
                 return self._manual_login()
             raise e
 
     @refresh_on_error
     def logout(self):
         if not self.cookies:
-            print('no cookies')
+            logger.warning('Cannot logout: no cookies')
             return
         res = logout(self.cookies)
         self.token = None
