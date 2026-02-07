@@ -1,6 +1,6 @@
 from iter.request import fetch
 from iter.types.post import Post
-from iter.types.responses import PostFeedResponse, GetPostResponse, EditPostResponse, PinPostResponse, GetLikedPostsResponse
+from iter.types.responses import PostFeedResponse, Post, PostUpdateResponse, PinResponse
 
 def create_post(token: str, content: str, wall_recipient_id: int | None = None, attach_ids: list[str] = []) -> Post:
     data: dict = {'content': content}
@@ -22,18 +22,18 @@ def get_posts(token: str, username: str | None = None, limit: int = 20, cursor: 
 
     return fetch(token, 'get', 'posts', data, response_schema=PostFeedResponse)
 
-def get_post(token: str, id: str) -> GetPostResponse:
-    return fetch(token, 'get', f'posts/{id}', response_schema=GetPostResponse)
+def get_post(token: str, id: str) -> Post:
+    return fetch(token, 'get', f'posts/{id}', response_schema=Post)
 
-def edit_post(token: str, id: str, content: str) -> EditPostResponse:
-    return fetch(token, 'put', f'posts/{id}', {'content': content}, response_schema=EditPostResponse)
+def edit_post(token: str, id: str, content: str) -> PostUpdateResponse:
+    return fetch(token, 'put', f'posts/{id}', {'content': content}, response_schema=PostUpdateResponse)
 
 def delete_post(token: str, id: str) -> bool:
     res = fetch(token, 'delete', f'posts/{id}')
     return res.ok
 
-def pin_post(token: str, id: str) -> PinPostResponse:
-    return fetch(token, 'post', f'posts/{id}/pin', response_schema=PinPostResponse)
+def pin_post(token: str, id: str) -> PinResponse:
+    return fetch(token, 'post', f'posts/{id}/pin', response_schema=PinResponse)
 
 def repost(token: str, id: str, content: str | None = None) -> Post:
     data = {}
@@ -45,5 +45,5 @@ def view_post(token: str, id: str) -> bool:
     res = fetch(token, 'post', f'posts/{id}/view')
     return res.ok
 
-def get_liked_posts(token: str, username: str, limit: int = 20, cursor: int = 0) -> GetLikedPostsResponse:
-    return fetch(token, 'get', f'posts/user/{username}/liked', {'limit': limit, 'cursor': cursor}, response_schema=GetLikedPostsResponse)
+def get_liked_posts(token: str, username: str, limit: int = 20, cursor: int = 0) -> PostFeedResponse:
+    return fetch(token, 'get', f'posts/user/{username}/liked', {'limit': limit, 'cursor': cursor}, response_schema=PostFeedResponse)

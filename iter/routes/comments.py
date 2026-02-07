@@ -1,7 +1,7 @@
 from iter.request import fetch
 from typing import Optional
 from iter.types.post import Comment
-from iter.types.responses import GetComments, LikeResponse
+from iter.types.responses import CommentsResponse, LikeResponse
 
 def add_comment(token: str, post_id: str, content: str, attachment_ids: Optional[list[str]] = None) -> Comment:
     data = {'content': content}
@@ -15,8 +15,8 @@ def reply_to_comment(token: str, comment_id: str, content: str, attachment_ids: 
         data['attachmentIds'] = attachment_ids
     return fetch(token, 'post', f'comments/{comment_id}/replies', data, response_schema=Comment)
 
-def get_comments(token: str, post_id: str, limit: int = 20, cursor: int = 0, sort: str = 'popular') -> GetComments:
-    return fetch(token, 'get', f'posts/{post_id}/comments', {'limit': limit, 'sort': sort, 'cursor': cursor}, response_schema=GetComments)
+def get_comments(token: str, post_id: str, limit: int = 20, cursor: int = 0, sort: str = 'popular') -> CommentsResponse:
+    return fetch(token, 'get', f'posts/{post_id}/comments', {'limit': limit, 'sort': sort, 'cursor': cursor}, response_schema=CommentsResponse)
 
 def like_comment(token: str, comment_id: str) -> LikeResponse:
     return fetch(token, 'post', f'comments/{comment_id}/like', response_schema=LikeResponse)

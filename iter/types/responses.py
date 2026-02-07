@@ -1,135 +1,95 @@
-from typing import List, Optional, Annotated
-from pydantic import BaseModel, Field, BeforeValidator
-from iter.types.user import User, UserFull, Clan
-from iter.types.etc import Hashtag
+from iter.types.user import User, Clan
+from iter.types.etc import Hashtag, CursorPagination, PagePagination
 from iter.types.post import Post, Comment
-from iter.types.media import Attachment
-from iter.types.etc import CursorPagination, PagePagination
 from iter.types.notification import Notification
-from datetime import datetime
+from iter.types.base import IterBaseModel, PostgresDateTime
+from typing import List, Optional
+from pydantic import Field
 
-def validate_datetime(v):
-    if isinstance(v, str):
-        # Fix +03 -> +03:00
-        if "+" in v:
-            parts = v.split("+")
-            if len(parts[-1]) <= 2:
-                v = f"{parts[0]}+{parts[-1].zfill(2)}:00"
-        return v
-    return v
-PostgresDateTime = Annotated[datetime, BeforeValidator(validate_datetime)]
+# Response models
 
-class SearchResults(BaseModel):
-    users: List[User] = Field(default_factory=list)
-    hashtags: List[Hashtag] = Field(default_factory=list)
-
-class GetCommentsResults(BaseModel):
-    comments: List[Comment]
-    total: int
-    hasMore: bool
-    nextCursor: Optional[int]
-
-class HashtagFeedData(BaseModel):
-    hashtag: Hashtag
+class PostFeedResponse(IterBaseModel):
     posts: List[Post]
     pagination: CursorPagination
 
-class GetPlatformStatus(BaseModel):
-    readOnly: bool
+class HashtagFeedResponse(PostFeedResponse):
+    hashtag: Hashtag
 
-class GetTopClans(BaseModel):
-    clans: List[Clan]
+class UserListResponse(IterBaseModel):
+    users: List[User]
+    pagination: PagePagination
 
-class GetWhoToFollow(BaseModel):
+class SearchResponse(IterBaseModel):
+    users: List[User] = Field(default_factory=list)
+    hashtags: List[Hashtag] = Field(default_factory=list)
+
+class CommentsResponse(IterBaseModel):
+    comments: List[Comment]
+    total: int
+    has_more: bool
+    next_cursor: Optional[int] = None
+
+class WhoToFollowResponse(IterBaseModel):
     users: List[User]
 
-class GetHashtags(BaseModel):
-    data: SearchResults
-
-class GetNotificationCount(BaseModel):
-    count: int
-
-class GetNotifications(BaseModel):
-    notifications: List[Notification]
-    hasMore: bool
-
-class MarkAsReadResponse(BaseModel):
-    success: bool
-
-class MarkBatchAsReadResponse(BaseModel):
-    # TODO
-    pass
-
-class GetComments(BaseModel):
-    data: GetCommentsResults
-
-class SearchResponse(BaseModel):
-    data: SearchResults
-
-class HashtagPostsResponse(BaseModel):
-    data: HashtagFeedData
-
-class UserFeedResponse(BaseModel):
-    data: List[User]
-    pagination: PagePagination
-
-class PostFeedData(BaseModel):
-    posts: list[Post]
-    pagination: CursorPagination
-
-class PostFeedResponse(BaseModel):
-    data: PostFeedData
-
-class PinPostResponse(BaseModel):
-    success: bool
-    pinnedPostId: Optional[str] = None
-
-class LikeResponse(BaseModel):
-    liked: bool
-    likesCount: int
-
-class FollowResponse(BaseModel):
-    following: bool
-    followersCount: int
-
-class GetPostResponse(BaseModel):
-    data: Post
-
-class EditPostResponse(BaseModel):
+class PostUpdateResponse(IterBaseModel):
     id: str
     content: str
-    updatedAt: PostgresDateTime
+    updated_at: PostgresDateTime
 
-class GetLikedPostsData(BaseModel):
-    posts: list[Post]
-    pagination: CursorPagination
+class ReportResponse(IterBaseModel):
+    pass # TODO
 
-class GetLikedPostsResponse(BaseModel):
-    data: GetLikedPostsData
+class VerificateResponse(IterBaseModel):
+    pass # TODO
 
-class UpdateProfileResponse(BaseModel):
+class VerificationStatusResponse(IterBaseModel):
+    pass # TODO
+
+# Action and state responses
+
+class LikeResponse(IterBaseModel):
+    liked: bool
+    likes_count: int
+
+class FollowResponse(IterBaseModel):
+    following: bool
+    followers_count: int
+
+class StatusResponse(IterBaseModel):
+    success: bool = True
+
+class PinResponse(IterBaseModel):
+    success: bool
+    pinned_post_id: Optional[str] = None
+
+# Account and profile responses
+
+class ProfileUpdateResponse(IterBaseModel):
     id: str
     username: str
-    displayName: str
+    display_name: str
     bio: str
-    updatedAt: PostgresDateTime
+    updated_at: PostgresDateTime
 
-class UpdatePrivacyResponse(BaseModel):
-    isPrivate: bool
-    wallClosed: bool
+class PrivacyUpdateResponse(IterBaseModel):
+    is_private: bool
+    wall_closed: bool
 
-class GetFollowersData(BaseModel):
-    users: list[User]
-    pagination: PagePagination
+# System and notification responses ---
 
-class GetFollowersResponse(BaseModel):
-    data: GetFollowersData
+class NotificationListResponse(IterBaseModel):
+    notifications: List[Notification]
+    has_more: bool
 
-class ReportResponse(BaseModel):
-    pass # TODO
+class NotificationCountResponse(IterBaseModel):
+    count: int
 
-class VerificateResponse(BaseModel):
-    pass # TODO
+class PlatformStatusResponse(IterBaseModel):
+    read_only: bool
 
-class GetVerificationStatusResponse(BaseModel):
-    pass # TODO
+class ClanListResponse(IterBaseModel):
+    clans: List[Clan]
+    
+class SuccessResponse(IterBaseModel):
+    success: bool = True
