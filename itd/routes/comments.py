@@ -19,3 +19,6 @@ def unlike_comment(token: str, comment_id: UUID):
 
 def delete_comment(token: str, comment_id: UUID):
     return fetch(token, 'delete', f'comments/{comment_id}')
+
+def get_replies(token: str, comment_id: UUID, page: int = 1, limit: int = 50, sort: str = 'oldest'):
+    return fetch(token, 'get', f'comments/{comment_id}/replies', {'page': page, 'limit': limit, 'sort': sort})

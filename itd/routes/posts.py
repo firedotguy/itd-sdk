@@ -40,6 +40,9 @@ def view_post(token: str, id: UUID):
 def get_liked_posts(token: str, username_or_id: str | UUID, limit: int = 20, cursor: datetime | None = None):
     return fetch(token, 'get', f'posts/user/{username_or_id}/liked', {'limit': limit, 'cursor': cursor})
 
+def get_user_posts(token: str, username_or_id: str | UUID, limit: int = 20, cursor: datetime | None = None):
+    return fetch(token, 'get', f'posts/user/{username_or_id}', {'limit': limit, 'cursor': cursor})
+
 def restore_post(token: str, post_id: UUID):
     return fetch(token, "post", f"posts/{post_id}/restore",)
 

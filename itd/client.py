@@ -8,10 +8,10 @@ from requests.exceptions import ConnectionError, HTTPError
 
 from itd.routes.users import get_user, update_profile, follow, unfollow, get_followers, get_following, update_privacy
 from itd.routes.etc import get_top_clans, get_who_to_follow, get_platform_status
-from itd.routes.comments import get_comments, add_comment, delete_comment, like_comment, unlike_comment, add_reply_comment
+from itd.routes.comments import get_comments, add_comment, delete_comment, like_comment, unlike_comment, add_reply_comment, get_replies
 from itd.routes.hashtags import get_hashtags, get_posts_by_hashtag
 from itd.routes.notifications import get_notifications, mark_as_read, mark_all_as_read, get_unread_notifications_count
-from itd.routes.posts import create_post, get_posts, get_post, edit_post, delete_post, pin_post, repost, view_post, get_liked_posts, restore_post, like_post, unlike_post
+from itd.routes.posts import create_post, get_posts, get_post, edit_post, delete_post, pin_post, repost, view_post, get_liked_posts, restore_post, like_post, unlike_post, get_user_posts
 from itd.routes.reports import report
 from itd.routes.search import search
 from itd.routes.files import upload_file
@@ -36,7 +36,7 @@ from itd.request import set_cookies
 from itd.exceptions import (
     NoCookie, NoAuthData, SamePassword, InvalidOldPassword, NotFound, ValidationError, UserBanned,
     PendingRequestExists, Forbidden, UsernameTaken, CantFollowYourself, Unauthorized,
-    CantRepostYourPost, AlreadyReposted, AlreadyReported, TooLarge, PinNotOwned
+    CantRepostYourPost, AlreadyReposted, AlreadyReported, TooLarge, PinNotOwned, NoContent
 )
 
 
@@ -426,6 +426,8 @@ class Client:
             raise NotFound('User')
         if res.status_code == 422 and 'found' in res.json():
             raise ValidationError(*list(res.json()['found'].items())[0])
+        if res.json().get('error', {}).get('code') == 'VALIDATION_ERROR':
+            raise NoContent()
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('Comment')
         res.raise_for_status()
@@ -457,6 +459,32 @@ class Client:
         data = res.json()['data']
 
         return [Comment.model_validate(comment) for comment in data['comments']], Pagination(page=(cursor // limit) or 1, limit=limit, total=data['total'], hasMore=data['hasMore'], nextCursor=None)
+
+    @refresh_on_error
+    def get_replies(self, comment_id: UUID, limit: int = 50, page: int = 1, sort: str = 'oldest') -> tuple[list[Comment], Pagination]:
+        """Получить список комментариев
+
+        Args:
+            comment_id (UUID): UUID поста
+            limit (int, optional): Лимит. Defaults to 50.
+            page (int, optional): Курсор (сколько пропустить). Defaults to 1.
+            sort (str, optional): Сортировка. Defaults to 'oldesr'.
+
+        Raises:
+            NotFound: Пост не найден
+
+        Returns:
+            list[Comment]: Список комментариев
+            Pagination: Пагинация
+        """
+        res = get_replies(self.token, comment_id, page, limit, sort)
+        if res.json().get('error', {}).get('code') == 'NOT_FOUND':
+            raise NotFound('Comment')
+        res.raise_for_status()
+        data = res.json()['data']
+
+        return [Comment.model_validate(comment) for comment in data['replies']], Pagination.model_validate(data['pagination'])
+
 
     @refresh_on_error
     def like_comment(self, id: UUID) -> int:
@@ -800,6 +828,30 @@ class Client:
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('Post')
         res.raise_for_status()
+
+    @refresh_on_error
+    def get_user_posts(self, username_or_id: str | UUID, limit: int = 20, cursor: datetime | None = None) -> tuple[list[Post], LikedPostsPagintaion]:
+        """Получить список постов пользователя
+
+        Args:
+            username_or_id (str | UUID): UUID или username пользователя
+            limit (int, optional): Лимит. Defaults to 20.
+            cursor (datetime | None, optional): Сдвиг (next_cursor). Defaults to None.
+
+        Raises:
+            NotFound: Пользователь не найден
+
+        Returns:
+            list[Post]: Список постов
+            LikedPostsPagintaion: Пагинация
+        """
+        res = get_user_posts(self.token, username_or_id, limit, cursor)
+        if res.json().get('error', {}).get('code') == 'NOT_FOUND':
+            raise NotFound('User')
+        res.raise_for_status()
+        data = res.json()['data']
+
+        return [Post.model_validate(post) for post in data['posts']], LikedPostsPagintaion.model_validate(data['pagination'])
 
     @refresh_on_error
     def get_liked_posts(self, username_or_id: str | UUID, limit: int = 20, cursor: datetime | None = None) -> tuple[list[Post], LikedPostsPagintaion]:

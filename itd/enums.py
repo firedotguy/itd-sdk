@@ -28,6 +28,7 @@ class AttachType(Enum):
     AUDIO = 'audio'
     IMAGE = 'image'
     VIDEO = 'video'
+    FILE = 'file'
 
 class PostsTab(Enum):
     FOLLOWING = 'following'

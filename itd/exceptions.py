@@ -99,3 +99,7 @@ class PinNotOwned(Exception):
         self.pin = pin
     def __str__(self):
         return f'You do not own "{self.pin}" pin'
+
+class NoContent(Exception):
+    def __str__(self) -> str:
+        return 'Content or attachments required'
