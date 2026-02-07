@@ -65,7 +65,7 @@ class Client:
             self._manual_login()
 
         if self.cookies:
-            self._refresh_auth()
+            self.refresh_auth()
 
         return self.token and self.cookies
 
@@ -99,6 +99,10 @@ class Client:
         if new_data:
             self.token = new_data.get('token', '').replace('Bearer ', '')
             self.cookies = new_data.get('cookies')
+
+            if isinstance(self.cookies, list):
+                self.cookies = "; ".join([f"{c['name']}={c['value']}" for c in self.cookies])
+
             self._save_session()
             return True
         logger.warning("Manual login failed")

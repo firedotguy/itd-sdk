@@ -69,7 +69,7 @@ class ProfileUpdateResponse(IterBaseModel):
     id: str
     username: str
     display_name: str
-    bio: str
+    bio: Optional[str]
     updated_at: PostgresDateTime
 
 class PrivacyUpdateResponse(IterBaseModel):
