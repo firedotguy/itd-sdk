@@ -44,8 +44,3 @@ class Post(_Post, PostShort):
 
 class NewPost(_Post):
     author: UserNewPost
-
-
-class LikePostResponse(BaseModel):
-    liked: bool
-    likes_count: int = Field(alias="likesCount")

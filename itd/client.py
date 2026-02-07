@@ -2,6 +2,7 @@ from warnings import deprecated
 from uuid import UUID
 from _io import BufferedReader
 from typing import cast
+from datetime import datetime
 
 from requests.exceptions import ConnectionError, HTTPError
 
@@ -10,7 +11,7 @@ from itd.routes.etc import get_top_clans, get_who_to_follow, get_platform_status
 from itd.routes.comments import get_comments, add_comment, delete_comment, like_comment, unlike_comment, add_reply_comment
 from itd.routes.hashtags import get_hashtags, get_posts_by_hashtag
 from itd.routes.notifications import get_notifications, mark_as_read, mark_all_as_read, get_unread_notifications_count
-from itd.routes.posts import create_post, get_posts, get_post, edit_post, delete_post, pin_post, repost, view_post, get_liked_posts, restore_post, like_post, delete_like_post
+from itd.routes.posts import create_post, get_posts, get_post, edit_post, delete_post, pin_post, repost, view_post, get_liked_posts, restore_post, like_post, unlike_post
 from itd.routes.reports import report
 from itd.routes.search import search
 from itd.routes.files import upload_file
@@ -19,19 +20,21 @@ from itd.routes.verification import verify, get_verification_status
 
 from itd.models.comment import Comment
 from itd.models.notification import Notification
-from itd.models.post import Post, NewPost, LikePostResponse
+from itd.models.post import Post, NewPost
 from itd.models.clan import Clan
 from itd.models.hashtag import Hashtag
 from itd.models.user import User, UserProfileUpdate, UserPrivacy, UserFollower, UserWhoToFollow
 from itd.models.pagination import Pagination, PostsPagintaion, LikedPostsPagintaion
 from itd.models.verification import Verification, VerificationStatus
+from itd.models.report import NewReport
+from itd.models.file import File
 
-from itd.enums import PostsTab
+from itd.enums import PostsTab, ReportTargetType, ReportTargetReason
 from itd.request import set_cookies
 from itd.exceptions import (
     NoCookie, NoAuthData, SamePassword, InvalidOldPassword, NotFound, ValidationError, UserBanned,
     PendingRequestExists, Forbidden, UsernameTaken, CantFollowYourself, Unauthorized,
-    CantRepostYourPost, AlreadyReposted
+    CantRepostYourPost, AlreadyReposted, AlreadyReported, TooLarge
 )
 
 
@@ -797,7 +800,21 @@ class Client:
         res.raise_for_status()
 
     @refresh_on_error
-    def get_liked_posts(self, username_or_id: str | UUID, limit: int = 20, cursor: int = 0) -> tuple[list[Post], LikedPostsPagintaion]:
+    def get_liked_posts(self, username_or_id: str | UUID, limit: int = 20, cursor: datetime | None = None) -> tuple[list[Post], LikedPostsPagintaion]:
+        """Получить список лайкнутых постов пользователя
+
+        Args:
+            username_or_id (str | UUID): UUID или username пользователя
+            limit (int, optional): Лимит. Defaults to 20.
+            cursor (datetime | None, optional): Сдвиг (next_cursor). Defaults to None.
+
+        Raises:
+            NotFound: Пользователь не найден
+
+        Returns:
+            list[Post]: Список постов
+            LikedPostsPagintaion: Пагинация
+        """
         res = get_liked_posts(self.token, username_or_id, limit, cursor)
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('User')
@@ -808,41 +825,114 @@ class Client:
 
 
     @refresh_on_error
-    def report(self, id: str, type: str = 'post', reason: str = 'other', description: str = ''):
-        return report(self.token, id, type, reason, description)
+    def report(self, id: UUID, type: ReportTargetType = ReportTargetType.POST, reason: ReportTargetReason = ReportTargetReason.OTHER, description: str | None = None) -> NewReport:
+        """Отправить жалобу
+
+        Args:
+            id (UUID): UUID цели
+            type (ReportTargetType, optional): Тип цели (пост/пользователь/комментарий). Defaults to ReportTargetType.POST.
+            reason (ReportTargetReason, optional): Причина. Defaults to ReportTargetReason.OTHER.
+            description (str | None, optional): Описание. Defaults to None.
+
+        Raises:
+            NotFound: Цель не найдена
+            AlreadyReported: Жалоба уже отправлена
+            ValidationError: Ошибка валидации
+
+        Returns:
+            NewReport: Новая жалоба
+        """
+        res = report(self.token, id, type, reason, description)
+
+        if res.json().get('error', {}).get('code') == 'VALIDATION_ERROR' and 'не найден' in res.json()['error'].get('message', ''):
+            raise NotFound(type.value.title())
+        if res.json().get('error', {}).get('code') == 'VALIDATION_ERROR' and 'Вы уже отправляли жалобу' in res.json()['error'].get('message', ''):
+            raise AlreadyReported(type.value.title())
+        if res.status_code == 422 and 'found' in res.json():
+            raise ValidationError(*list(res.json()['found'].items())[-1])
+        res.raise_for_status()
+
+        return NewReport.model_validate(res.json()['data'])
+
 
     @refresh_on_error
-    def report_user(self, id: str, reason: str = 'other', description: str = ''):
-        return report(self.token, id, 'user', reason, description)
+    def search(self, query: str, user_limit: int = 5, hashtag_limit: int = 5) -> tuple[list[UserWhoToFollow], list[Hashtag]]:
+        """Поиск по пользователям и хэштэгам
+
+        Args:
+            query (str): Запрос
+            user_limit (int, optional): Лимит пользователей. Defaults to 5.
+            hashtag_limit (int, optional): Лимит хэштэгов. Defaults to 5.
+
+        Raises:
+            TooLarge: Слишком длинный запрос
+
+        Returns:
+            list[UserWhoToFollow]: Список пользователей
+            list[Hashtag]: Список хэштэгов
+        """
+        res = search(self.token, query, user_limit, hashtag_limit)
+
+        if res.status_code == 414:
+            raise TooLarge()
+        res.raise_for_status()
+        data = res.json()['data']
+
+        return [UserWhoToFollow.model_validate(user) for user in data['users']], [Hashtag.model_validate(hashtag) for hashtag in data['hashtags']]
 
     @refresh_on_error
-    def report_post(self, id: str, reason: str = 'other', description: str = ''):
-        return report(self.token, id, 'post', reason, description)
+    def search_user(self, query: str, limit: int = 5) -> list[UserWhoToFollow]:
+        """Поиск пользователей
+
+        Args:
+            query (str): Запрос
+            limit (int, optional): Лимит. Defaults to 5.
+
+        Returns:
+            list[UserWhoToFollow]: Список пользователей
+        """
+        return self.search(query, limit, 0)[0]
 
     @refresh_on_error
-    def report_comment(self, id: str, reason: str = 'other', description: str = ''):
-        return report(self.token, id, 'comment', reason, description)
+    def search_hashtag(self, query: str, limit: int = 5) -> list[Hashtag]:
+        """Поиск хэштэгов
+
+        Args:
+            query (str): Запрос
+            limit (int, optional): Лимит. Defaults to 5.
+
+        Returns:
+            list[Hashtag]: Список хэштэгов
+        """
+        return self.search(query, 0, limit)[1]
 
 
     @refresh_on_error
-    def search(self, query: str, user_limit: int = 5, hashtag_limit: int = 5):
-        return search(self.token, query, user_limit, hashtag_limit)
+    def upload_file(self, name: str, data: BufferedReader) -> File:
+        """Загрузить файл
 
-    @refresh_on_error
-    def search_user(self, query: str, limit: int = 5):
-        return search(self.token, query, limit, 0)
+        Args:
+            name (str): Имя файла
+            data (BufferedReader): Содержимое (open('имя', 'rb'))
 
-    @refresh_on_error
-    def search_hashtag(self, query: str, limit: int = 5):
-        return search(self.token, query, 0, limit)
+        Returns:
+            File: Файл
+        """
+        res = upload_file(self.token, name, data)
+        res.raise_for_status()
 
-
-    @refresh_on_error
-    def upload_file(self, name: str, data: BufferedReader):
-        return upload_file(self.token, name, data).json()
+        return File.model_validate(res.json())
 
     def update_banner(self, name: str) -> UserProfileUpdate:
-        id = self.upload_file(name, cast(BufferedReader, open(name, 'rb')))['id']
+        """Обновить банер (шорткат из upload_file + update_profile)
+
+        Args:
+            name (str): Имя файла
+
+        Returns:
+            UserProfileUpdate: Обновленный профиль
+        """
+        id = self.upload_file(name, cast(BufferedReader, open(name, 'rb'))).id
         return self.update_profile(banner_id=id)
 
     @refresh_on_error
@@ -852,28 +942,45 @@ class Client:
         Args:
             post_id: UUID поста
         """
-        restore_post(self.token, post_id)
+        res = restore_post(self.token, post_id)
+        res.raise_for_status()
 
     @refresh_on_error
-    def like_post(self, post_id: UUID) -> LikePostResponse:
-        """Поставить лайк на пост
+    def like_post(self, post_id: UUID) -> int:
+        """Лайкнуть пост
 
         Args:
-            post_id: UUID поста
+            post_id (UUID): UUID поста
+
+        Raises:
+            NotFound: Пост не найден
+
+        Returns:
+            int: Количество лайков
         """
         res = like_post(self.token, post_id)
+
         if res.status_code == 404:
-            raise NotFound("Post not found")
-        return LikePostResponse.model_validate(res.json())
+            raise NotFound("Post")
+
+        return res.json()['likesCount']
 
     @refresh_on_error
-    def delete_like_post(self, post_id: UUID) -> LikePostResponse:
+    def unlike_post(self, post_id: UUID) -> int:
         """Убрать лайк с поста
 
         Args:
-            post_id: UUID поста
+            post_id (UUID): UUID поста
+
+        Raises:
+            NotFound: Пост не найден
+
+        Returns:
+            int: Количество лайков
         """
-        res = delete_like_post(self.token, post_id)
+        res = unlike_post(self.token, post_id)
+
         if res.status_code == 404:
             raise NotFound("Post not found")
-        return LikePostResponse.model_validate(res.json())
+
+        return res.json()['likesCount']

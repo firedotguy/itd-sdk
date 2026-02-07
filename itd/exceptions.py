@@ -11,15 +11,17 @@ class InvalidCookie(Exception):
         self.code = code
     def __str__(self):
         if self.code == 'SESSION_NOT_FOUND':
-            return f'Invalid cookie data: Session not found (incorrect refresh token)'
+            return 'Invalid cookie data: Session not found (incorrect refresh token)'
         elif self.code == 'REFRESH_TOKEN_MISSING':
-            return f'Invalid cookie data: No refresh token'
+            return 'Invalid cookie data: No refresh token'
+        elif self.code == 'SESSION_EXPIRED':
+            return 'Invalid cookie data: Session expired'
         # SESSION_REVOKED
-        return f'Invalid cookie data: Session revoked (logged out)'
+        return 'Invalid cookie data: Session revoked (logged out)'
 
 class InvalidToken(Exception):
     def __str__(self):
-        return f'Invalid access token'
+        return 'Invalid access token'
 
 class SamePassword(Exception):
     def __str__(self):
@@ -30,7 +32,7 @@ class InvalidOldPassword(Exception):
         return 'Old password is incorrect'
 
 class NotFound(Exception):
-    def __init__(self, obj):
+    def __init__(self, obj: str):
         self.obj = obj
     def __str__(self):
         return f'{self.obj} not found'
@@ -81,3 +83,13 @@ class CantRepostYourPost(Exception):
 class AlreadyReposted(Exception):
     def __str__(self):
         return 'Post already reposted'
+
+class AlreadyReported(Exception):
+    def __init__(self, obj: str) -> None:
+        self.obj = obj
+    def __str__(self):
+        return f'{self.obj} already reported'
+
+class TooLarge(Exception):
+    def __str__(self):
+        return 'Search query too large'

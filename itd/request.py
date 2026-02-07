@@ -85,11 +85,11 @@ def auth_fetch(cookies: str, method: str, url: str, params: dict = {}, token: st
     try:
         if res.json().get('error', {}).get('code') == 'RATE_LIMIT_EXCEEDED':
             raise RateLimitExceeded(res.json()['error'].get('retryAfter', 0))
-        if res.json().get('error', {}).get('code') in ('SESSION_NOT_FOUND', 'REFRESH_TOKEN_MISSING', 'SESSION_REVOKED'):
+        if res.json().get('error', {}).get('code') in ('SESSION_NOT_FOUND', 'REFRESH_TOKEN_MISSING', 'SESSION_REVOKED', 'SESSION_EXPIRED'):
             raise InvalidCookie(res.json()['error']['code'])
         if res.json().get('error', {}).get('code') == 'UNAUTHORIZED':
             raise Unauthorized()
     except JSONDecodeError:
-        pass
+        print('fail to parse json')
 
     return res

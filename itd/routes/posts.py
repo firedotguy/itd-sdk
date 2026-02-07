@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from itd.request import fetch
@@ -36,8 +37,8 @@ def repost(token: str, id: UUID, content: str | None = None):
 def view_post(token: str, id: UUID):
     return fetch(token, 'post', f'posts/{id}/view')
 
-def get_liked_posts(token: str, username_or_id: str | UUID, limit: int = 20, cursor: int = 0):
-    return fetch(token, 'get', f'posts/user/{username_or_id}/liked', {'limit': limit})
+def get_liked_posts(token: str, username_or_id: str | UUID, limit: int = 20, cursor: datetime | None = None):
+    return fetch(token, 'get', f'posts/user/{username_or_id}/liked', {'limit': limit, 'cursor': cursor})
 
 def restore_post(token: str, post_id: UUID):
     return fetch(token, "post", f"posts/{post_id}/restore",)
@@ -45,5 +46,5 @@ def restore_post(token: str, post_id: UUID):
 def like_post(token: str, post_id: UUID):
     return fetch(token, "post", f"posts/{post_id}/like")
 
-def delete_like_post(token: str, post_id: UUID):
+def unlike_post(token: str, post_id: UUID):
     return fetch(token, "delete", f"posts/{post_id}/like")
