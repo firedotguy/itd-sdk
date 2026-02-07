@@ -1,52 +1,49 @@
-# pyITDclient
+# pyClient
 Клиент ITD для python
 
 
 ## Установка
 
 ```bash
-pip install itd-sdk
+pip install itd-iter-api
 ```
 
 ## Пример
 
 ```python
-from itd import ITDClient
+from iter import Client
 
-c = ITDClient('TOKEN', 'refresh_token=...; __ddg1_=...; __ddgid_=...; is_auth=1; __ddg2_=...; ddg_last_challenge=...; __ddg8_=...; __ddg10_=...; __ddg9_=...')
-# можно указать только токен, тогда после просрочки перестанет работать, либо только куки чтобы токен сразу подтянулся, либо оба сразу
+c = Client() # вход через встроенный браузер или из файла
+c = Client(email='mail@example.com', password='1234') # вход через встроенный браузер и автозаполнение или из файла
+c = Client(token='afvrc...', cookies='refresh_token=...;__ddg1=...; ...') # вход используя токен и куки или из файла
+c = Client(use_manual_login=False) # можно отключить вход через браузер
+c = Client(session_file='session.jsoon') # файл сессии с токеном и куки
 
 print(c.get_me())
 ```
-
-> [!NOTE]
-> Берите куки из запроса /auth/refresh. В остальных запросах нету refresh_token
-> ![cookie](cookie-screen.png)
 
 ---
 ### Скрипт на обновление имени
 Этот код сейчас работает на @itd_sdk (обновляется имя и пост)
 ```python
-from itd import ITDClient
+from itd import Client
 from time import sleep
 from random import randint
 from datetime import datetime
 from datetime import timezone
 
-c = ITDClient(None, '...')
+c = Client(None, '...')
 
 while True:
     c.update_profile(display_name=f'PYTHON ITD SDK | Рандом: {randint(1, 100)} | {datetime.now().strftime("%m.%d %H:%M:%S")}')
-    # редактирование поста
-    # c.edit_post('82ea8a4f-a49e-485e-b0dc-94d7da9df990', f'рил ща {datetime.now(timezone.utc).isoformat(" ")} по UTC (обновляется каждую секунду)')
     sleep(1)
 ```
 
 ### Скрипт на смену баннера
 ```python
-from itd import ITDClient
+from itd import Client
 
-c = ITDClient(None, '...')
+c = Client(None, '...')
 
 id = c.upload_file('любое-имя.png', open('реальное-имя-файла.png', 'rb'))['id']
 c.update_profile(banner_id=id)
@@ -76,18 +73,3 @@ fetch(c.token, 'метод', 'эндпоинт', {'данные': 'данные'
 
 > [!NOTE]
 > `xn--d1ah4a.com` - punycode от "итд.com"
-
-## Планы
-
- - Форматированные сообщения об ошибках
- - Логирование (через logging)
- - Добавление ООП (отдеьные классы по типу User или Post вместо обычного JSON)
- - Голосовые сообщения
-
-
-## Прочее
-Лицезия: [MIT](./LICENSE)
-Идея (и часть эндпоинтов): https://github.com/FriceKa/ITD-SDK-js
- - По сути этот проект является реворком, просто на другом языке
-
-Автор: [itd_sdk](https://xn--d1ah4a.com/itd_sdk) (в итд) [@desicars](https://t.me/desicars) (в тг)
