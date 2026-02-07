@@ -93,3 +93,9 @@ class AlreadyReported(Exception):
 class TooLarge(Exception):
     def __str__(self):
         return 'Search query too large'
+
+class PinNotOwned(Exception):
+    def __init__(self, pin: str) -> None:
+        self.pin = pin
+    def __str__(self):
+        return f'You do not own "{self.pin}" pin'

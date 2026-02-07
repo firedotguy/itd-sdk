@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from itd.models.pin import Pin
+from itd.models.pin import ShortPin
 
 
 class UserPrivacy(BaseModel):
@@ -26,7 +26,7 @@ class UserNewPost(BaseModel):
     username: str | None = None
     display_name: str = Field(alias='displayName')
     avatar: str
-    pin: Pin | None = None
+    pin: ShortPin | None = None
 
     verified: bool = False
 

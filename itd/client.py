@@ -17,6 +17,7 @@ from itd.routes.search import search
 from itd.routes.files import upload_file
 from itd.routes.auth import refresh_token, change_password, logout
 from itd.routes.verification import verify, get_verification_status
+from itd.routes.pins import get_pins, remove_pin, set_pin
 
 from itd.models.comment import Comment
 from itd.models.notification import Notification
@@ -28,13 +29,14 @@ from itd.models.pagination import Pagination, PostsPagintaion, LikedPostsPaginta
 from itd.models.verification import Verification, VerificationStatus
 from itd.models.report import NewReport
 from itd.models.file import File
+from itd.models.pin import Pin
 
 from itd.enums import PostsTab, ReportTargetType, ReportTargetReason
 from itd.request import set_cookies
 from itd.exceptions import (
     NoCookie, NoAuthData, SamePassword, InvalidOldPassword, NotFound, ValidationError, UserBanned,
     PendingRequestExists, Forbidden, UsernameTaken, CantFollowYourself, Unauthorized,
-    CantRepostYourPost, AlreadyReposted, AlreadyReported, TooLarge
+    CantRepostYourPost, AlreadyReposted, AlreadyReported, TooLarge, PinNotOwned
 )
 
 
@@ -52,7 +54,7 @@ def refresh_on_error(func):
 
 
 class Client:
-    def __init__(self, token: str | None, cookies: str | None = None):
+    def __init__(self, token: str | None = None, cookies: str | None = None):
         self.cookies = cookies
 
         if token:
@@ -984,3 +986,35 @@ class Client:
             raise NotFound("Post not found")
 
         return res.json()['likesCount']
+
+
+    @refresh_on_error
+    def get_pins(self) -> tuple[list[Pin], str]:
+        """Список пинов
+
+        Returns:
+            list[Pin]: Список пинов
+            str: Активный пин
+        """
+        res = get_pins(self.token)
+        res.raise_for_status()
+        data = res.json()['data']
+
+        return [Pin.model_validate(pin) for pin in data['pins']], data['activePin']
+
+    @refresh_on_error
+    def remove_pin(self):
+        """Снять пин"""
+        res = remove_pin(self.token)
+        res.raise_for_status()
+
+    @refresh_on_error
+    def set_pin(self, slug: str):
+        res = set_pin(self.token, slug)
+        if res.status_code == 422 and 'found' in res.json():
+            raise ValidationError(*list(res.json()['found'].items())[0])
+        if res.json().get('error', {}).get('code') == 'PIN_NOT_OWNED':
+            raise PinNotOwned(slug)
+        res.raise_for_status()
+
+        return res.json()['pin']
