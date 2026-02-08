@@ -14,7 +14,7 @@ from itd.routes.notifications import get_notifications, mark_as_read, mark_all_a
 from itd.routes.posts import create_post, get_posts, get_post, edit_post, delete_post, pin_post, repost, view_post, get_liked_posts, restore_post, like_post, unlike_post, get_user_posts
 from itd.routes.reports import report
 from itd.routes.search import search
-from itd.routes.files import upload_file
+from itd.routes.files import upload_file, get_file, delete_file
 from itd.routes.auth import refresh_token, change_password, logout
 from itd.routes.verification import verify, get_verification_status
 from itd.routes.pins import get_pins, remove_pin, set_pin
@@ -37,7 +37,7 @@ from itd.exceptions import (
     NoCookie, NoAuthData, SamePassword, InvalidOldPassword, NotFound, ValidationError, UserBanned,
     PendingRequestExists, Forbidden, UsernameTaken, CantFollowYourself, Unauthorized,
     CantRepostYourPost, AlreadyReposted, AlreadyReported, TooLarge, PinNotOwned, NoContent,
-    AlreadyFollowing
+    AlreadyFollowing, NotFoundOrForbidden
 )
 
 
@@ -948,6 +948,43 @@ class Client:
             File: Файл
         """
         res = upload_file(self.token, name, data)
+        res.raise_for_status()
+
+        return File.model_validate(res.json())
+
+    @refresh_on_error
+    def get_file(self, id: UUID) -> File:
+        """Получить файл
+
+        Args:
+            id (UUID): UUID файла
+
+        Raises:
+            NotFoundOrForbidden: Файл не найден или нет доступа
+
+        Returns:
+            File: Файл
+        """
+        res = get_file(self.token, id)
+        if res.json().get('error', {}).get('code') == 'NOT_FOUND':
+            raise NotFoundOrForbidden('File')
+        res.raise_for_status()
+
+        return File.model_validate(res.json())
+
+    @refresh_on_error
+    def delete_file(self, id: UUID) -> File:
+        """Удалить файл
+
+        Args:
+            id (UUID): UUID файла
+
+        Raises:
+            NotFound: Файл не найден
+        """
+        res = delete_file(self.token, id)
+        if res.json().get('error', {}).get('code') == 'NOT_FOUND':
+            raise NotFound('File')
         res.raise_for_status()
 
         return File.model_validate(res.json())

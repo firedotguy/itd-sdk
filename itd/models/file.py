@@ -1,4 +1,5 @@
 from uuid import UUID
+from datetime import datetime
 
 from pydantic import BaseModel, Field
 
@@ -10,6 +11,7 @@ class File(BaseModel):
     filename: str
     mime_type: str = Field(alias='mimeType')
     size: int
+    created_at: datetime | None = Field(None, alias='createdAt')
 
 
 class PostAttach(BaseModel):

@@ -37,6 +37,13 @@ class NotFound(Exception):
     def __str__(self):
         return f'{self.obj} not found'
 
+class NotFoundOrForbidden(Exception):
+    def __init__(self, obj: str):
+        self.obj = obj
+    def __str__(self):
+        return f'{self.obj} not found or access denied'
+
+
 class UserBanned(Exception):
     def __str__(self):
         return 'User banned'
