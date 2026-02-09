@@ -64,6 +64,32 @@ c.create_post('тест1') # создание постов
 # итд
 ```
 
+### SSE - прослушивание уведомлений в реальном времени
+
+```python
+from itd import ITDClient, StreamConnect, StreamNotification
+
+# Используйте cookies для автоматического обновления токена
+c = ITDClient(cookies='refresh_token=...; __ddg1_=...; is_auth=1')
+
+for event in c.stream_notifications():
+    if isinstance(event, StreamConnect):
+        print(f'! Подключено к SSE: {event.user_id}')
+    elif isinstance(event, StreamNotification):
+        print(f'-- {event.type.value}: {event.actor.display_name} (@{event.actor.username})')
+```
+
+> [!NOTE]
+> SSE автоматически переподключается при истечении токена
+
+Типы уведомлений:
+- `like` - лайк на пост
+- `follow` - новый подписчик
+- `wall_post` - пост на вашей стене
+- `comment` - комментарий к посту
+- `reply` - ответ на комментарий
+- `repost` - репост вашего поста
+
 ### Кастомные запросы
 
 ```python
