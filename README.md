@@ -46,10 +46,9 @@ while True:
 ```python
 from itd import ITDClient
 
-c = ITDClient(None, '...')
+c = ITDClient(None, 'Ваши cookies')
 
-id = c.upload_file('любое-имя.png', open('реальное-имя-файла.png', 'rb'))['id']
-c.update_profile(banner_id=id)
+c.update_banner('имя-файла.png')
 print('баннер обновлен')
 
 ```
