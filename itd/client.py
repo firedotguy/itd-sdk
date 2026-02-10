@@ -1,4 +1,3 @@
-# from warnings import deprecated
 from uuid import UUID
 from _io import BufferedReader
 from typing import cast, Iterator
@@ -994,8 +993,9 @@ class Client:
 
         return File.model_validate(res.json())
 
+    # @deprecated # Этот декоратор появился в 3.13, а наша библиотека поддерживает с 3.9
     def update_banner(self, name: str) -> UserProfileUpdate:
-        """Обновить банер (шорткат из upload_file + update_profile)
+        """[DEPRECATED] Обновить банер (шорткат из upload_file + update_profile)
 
         Args:
             name (str): Имя файла
@@ -1005,6 +1005,19 @@ class Client:
         """
         id = self.upload_file(name, cast(BufferedReader, open(name, 'rb'))).id
         return self.update_profile(banner_id=id)
+
+    def update_banner_new(self, name: str) -> tuple[File, UserProfileUpdate]:
+        """Обновить банер (шорткат из upload_file + update_profile)
+
+        Args:
+            name (str): Имя файла
+
+        Returns:
+            File: Загруженный файл
+            UserProfileUpdate: Обновленный профиль
+        """
+        file = self.upload_file(name, cast(BufferedReader, open(name, 'rb')))
+        return file, self.update_profile(banner_id=file.id)
 
     @refresh_on_error
     def restore_post(self, post_id: UUID) -> None:
@@ -1087,6 +1100,7 @@ class Client:
         res.raise_for_status()
 
         return res.json()['pin']
+
 
     @refresh_on_error
     def stream_notifications(self) -> Iterator[StreamConnect | StreamNotification]:
