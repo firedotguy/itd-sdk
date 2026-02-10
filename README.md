@@ -18,10 +18,25 @@ c = ITDClient('TOKEN', 'refresh_token=...; __ddg1_=...; __ddgid_=...; is_auth=1;
 
 print(c.get_me())
 ```
-
+<!--
 > [!NOTE]
 > Берите куки из запроса /auth/refresh. В остальных запросах нету refresh_token
-> ![cookie](cookie-screen.png)
+> ![cookie](cookie-screen.png) -->
+
+## Получение cookies
+
+Для получения access_token требуются cookies с `refresh_token`. Как их получить:
+
+1. Откройте [итд.com](https://xn--d1ah4a.com) в браузере
+2. Откройте DevTools (F12)
+3. Перейдите на вкладку **Network**
+4. Обновите страницу
+5. Найдите запрос к `/auth/refresh`
+6. Скопируйте значение **Cookie** из Request Headers
+> Пример: `refresh_token=123123A67BCdEfGG; is_auth=1`
+> В cookies также могут присутствовать значения типа `__ddgX__` (DDoS-Guard cookies) или `_ym_XXXX` (`X` - любое число или буква). Они необязательные и их наличие не влияет на результат
+
+![cookie](cookie-screen.png)
 
 ---
 ### Скрипт на обновление имени

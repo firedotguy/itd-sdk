@@ -5,20 +5,20 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from itd import ITDClient, StreamConnect, StreamNotification
+from itd import ITDClient, StreamConnect
 
 def main():
     cookies = 'YOUR_COOKIES_HERE'
-    
+
     if cookies == 'YOUR_COOKIES_HERE':
         print('! Укажите cookies в переменной cookies')
         print('   См. examples/README.md для инструкций')
         return
-    
+
     client = ITDClient(cookies=cookies)
-    
+
     print('-- Подключение к SSE...')
-    
+
     try:
         for event in client.stream_notifications():
             if isinstance(event, StreamConnect):
@@ -29,7 +29,7 @@ def main():
                 if event.preview:
                     preview = event.preview[:50] + '...' if len(event.preview) > 50 else event.preview
                     print(f'   {preview}')
-                    
+
     except KeyboardInterrupt:
         print(f'\n! Отключение...')
 
