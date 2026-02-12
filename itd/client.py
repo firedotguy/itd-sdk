@@ -454,13 +454,13 @@ class Client:
 
     @refresh_on_error
     def get_replies(self, comment_id: UUID, limit: int = 50, page: int = 1, sort: str = 'oldest') -> tuple[list[Comment], Pagination]:
-        """Получить список комментариев
+        """Получить список ответов на комментарий
 
         Args:
             comment_id (UUID): UUID поста
             limit (int, optional): Лимит. Defaults to 50.
             page (int, optional): Курсор (сколько пропустить). Defaults to 1.
-            sort (str, optional): Сортировка. Defaults to 'oldesr'.
+            sort (str, optional): Сортировка. Defaults to 'oldest'.
 
         Raises:
             NotFound: Пост не найден

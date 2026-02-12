@@ -114,3 +114,7 @@ class NoContent(Exception):
 class AlreadyFollowing(Exception):
     def __str__(self) -> str:
         return 'Already following user'
+
+class AccountBanned(Exception):
+    def __str__(self) -> str:
+        return 'Account has been deactivated'
