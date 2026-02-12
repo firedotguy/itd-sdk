@@ -33,3 +33,10 @@ class AttachType(Enum):
 class PostsTab(Enum):
     FOLLOWING = 'following'
     POPULAR = 'popular'
+
+class AccessType(Enum):
+    """Типы разрешений для видимости лайков и записей на стене"""
+    NOBODY = 'nobody' # никто
+    MUTUAL = 'mutual' # взаимные
+    FOLLOWERS = 'followers' # подписчики
+    EVERYONE = 'everyone' # все

@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from itd.request import fetch
+from itd.models.user import UserPrivacyData
 
 
 def get_user(token: str, username: str):
@@ -25,6 +26,9 @@ def update_privacy(token: str, wall_closed: bool = False, private: bool = False)
     if private is not None:
         data['isPrivate'] = private
     return fetch(token, 'put', 'users/me/privacy', data)
+
+def update_privacy_new(token: str, privacy: UserPrivacyData):
+    return fetch(token, 'put', 'users/me/privacy', privacy.to_dict())
 
 def follow(token: str, username: str):
     return fetch(token, 'post', f'users/{username}/follow')

@@ -8,7 +8,7 @@ from time import sleep
 from requests.exceptions import ConnectionError, HTTPError
 from sseclient import SSEClient
 
-from itd.routes.users import get_user, update_profile, follow, unfollow, get_followers, get_following, update_privacy
+from itd.routes.users import get_user, update_profile, follow, unfollow, get_followers, get_following, update_privacy, update_privacy_new
 from itd.routes.etc import get_top_clans, get_who_to_follow, get_platform_status
 from itd.routes.comments import get_comments, add_comment, delete_comment, like_comment, unlike_comment, add_reply_comment, get_replies
 from itd.routes.hashtags import get_hashtags, get_posts_by_hashtag
@@ -26,7 +26,7 @@ from itd.models.notification import Notification
 from itd.models.post import Post, NewPost, PollData, Poll
 from itd.models.clan import Clan
 from itd.models.hashtag import Hashtag
-from itd.models.user import User, UserProfileUpdate, UserPrivacy, UserFollower, UserWhoToFollow
+from itd.models.user import User, UserProfileUpdate, UserPrivacy, UserFollower, UserWhoToFollow, UserPrivacyData
 from itd.models.pagination import Pagination, PostsPagintaion, LikedPostsPagintaion
 from itd.models.verification import Verification, VerificationStatus
 from itd.models.report import NewReport
@@ -194,7 +194,7 @@ class Client:
 
     @refresh_on_error
     def update_privacy(self, wall_closed: bool = False, private: bool = False) -> UserPrivacy:
-        """Обновить настройки приватности
+        """(УСТАРЕЛО! Используйте update_privacy_new) настройки приватности
 
         Args:
             wall_closed (bool, optional): Закрыть стену. Defaults to False.
@@ -204,6 +204,21 @@ class Client:
             UserPrivacy: Обновленные данные приватности
         """
         res = update_privacy(self.token, wall_closed, private)
+        res.raise_for_status()
+
+        return UserPrivacy.model_validate(res.json())
+
+    @refresh_on_error
+    def update_privacy_new(self, privacy: UserPrivacyData) -> UserPrivacy:
+        """Обновить настройки приватности
+
+        Args:
+            privacy (UserPrivacyData): Данные приватности
+
+        Returns:
+            UserPrivacy: Обновленные данные приватности
+        """
+        res = update_privacy_new(self.token, privacy)
         res.raise_for_status()
 
         return UserPrivacy.model_validate(res.json())
@@ -614,7 +629,6 @@ class Client:
         """Прочитать все уведомления"""
         res = mark_all_as_read(self.token)
         res.raise_for_status()
-
 
     @refresh_on_error
     def get_unread_notifications_count(self) -> int:

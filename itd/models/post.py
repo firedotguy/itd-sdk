@@ -74,6 +74,7 @@ class _Post(_PostShort):
     is_reposted: bool = Field(False, alias='isReposted')
     is_viewed: bool = Field(False, alias='isViewed')
     is_owner: bool = Field(False, alias='isOwner')
+    is_pinned: bool = Field(False, alias='isPinned') # only for user wall
 
     attachments: list[PostAttach] = []
     comments: list[Comment] = []
