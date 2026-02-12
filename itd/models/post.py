@@ -1,11 +1,57 @@
 from uuid import UUID
+from datetime import datetime
 
-from pydantic import Field, BaseModel
+from pydantic import Field, BaseModel, field_validator
 
 from itd.models.user import UserPost, UserNewPost
 from itd.models._text import TextObject
 from itd.models.file import PostAttach
 from itd.models.comment import Comment
+
+
+class NewPollOption(BaseModel):
+    text: str
+
+
+class PollOption(NewPollOption):
+    id: UUID
+    position: int = 0
+    votes: int = Field(0, alias='votesCount')
+
+
+class _Poll(BaseModel):
+    multiple: bool = Field(False, alias='multipleChoice')
+    question: str
+
+
+class NewPoll(_Poll):
+    options: list[NewPollOption]
+    model_config = {'serialize_by_alias': True}
+
+
+class PollData:
+    def __init__(self, question: str, options: list[str], multiple: bool = False):
+        self.poll = NewPoll(question=question, options=[NewPollOption(text=option) for option in options], multipleChoice=multiple)
+
+
+class Poll(_Poll):
+    id: UUID
+    post_id: UUID = Field(alias='postId')
+
+    options: list[PollOption]
+    votes: int = Field(0, alias='totalVotes')
+    is_voted: bool = Field(False, alias='hasVoted')
+    voted_option_ids: list[UUID] = Field([], alias='votedOptionIds')
+
+    created_at: datetime = Field(alias='createdAt')
+
+    @field_validator('created_at', mode='plain')
+    @classmethod
+    def validate_created_at(cls, v: str):
+        try:
+            return datetime.strptime(v + '00', '%Y-%m-%d %H:%M:%S.%f%z')
+        except ValueError:
+            return datetime.strptime(v, '%Y-%m-%dT%H:%M:%S.%f')
 
 
 class _PostShort(TextObject):
@@ -39,8 +85,9 @@ class _Post(_PostShort):
 
 
 class Post(_Post, PostShort):
-    pass
+    poll: Poll | None = None
 
 
 class NewPost(_Post):
     author: UserNewPost
+    poll: NewPoll | None = None

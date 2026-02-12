@@ -13,7 +13,7 @@ from itd.routes.etc import get_top_clans, get_who_to_follow, get_platform_status
 from itd.routes.comments import get_comments, add_comment, delete_comment, like_comment, unlike_comment, add_reply_comment, get_replies
 from itd.routes.hashtags import get_hashtags, get_posts_by_hashtag
 from itd.routes.notifications import get_notifications, mark_as_read, mark_all_as_read, get_unread_notifications_count, stream_notifications
-from itd.routes.posts import create_post, get_posts, get_post, edit_post, delete_post, pin_post, repost, view_post, get_liked_posts, restore_post, like_post, unlike_post, get_user_posts
+from itd.routes.posts import create_post, get_posts, get_post, edit_post, delete_post, pin_post, repost, view_post, get_liked_posts, restore_post, like_post, unlike_post, get_user_posts, vote
 from itd.routes.reports import report
 from itd.routes.search import search
 from itd.routes.files import upload_file, get_file, delete_file
@@ -23,7 +23,7 @@ from itd.routes.pins import get_pins, remove_pin, set_pin
 
 from itd.models.comment import Comment
 from itd.models.notification import Notification
-from itd.models.post import Post, NewPost
+from itd.models.post import Post, NewPost, PollData, Poll
 from itd.models.clan import Clan
 from itd.models.hashtag import Hashtag
 from itd.models.user import User, UserProfileUpdate, UserPrivacy, UserFollower, UserWhoToFollow
@@ -40,7 +40,7 @@ from itd.exceptions import (
     NoCookie, NoAuthData, SamePassword, InvalidOldPassword, NotFound, ValidationError, UserBanned,
     PendingRequestExists, Forbidden, UsernameTaken, CantFollowYourself, Unauthorized,
     CantRepostYourPost, AlreadyReposted, AlreadyReported, TooLarge, PinNotOwned, NoContent,
-    AlreadyFollowing, NotFoundOrForbidden
+    AlreadyFollowing, NotFoundOrForbidden, OptionsNotBelong, NotMultipleChoice, EmptyOptions
 )
 
 
@@ -630,13 +630,14 @@ class Client:
 
 
     @refresh_on_error
-    def create_post(self, content: str, wall_recipient_id: UUID | None = None, attach_ids: list[UUID] = []) -> NewPost:
+    def create_post(self, content: str | None = None, wall_recipient_id: UUID | None = None, attachment_ids: list[UUID] = [], poll: PollData | None = None) -> NewPost:
         """Создать пост
 
         Args:
-            content (str): Содержимое
+            content (str | None, optional): Содержимое. Defaults to None.
             wall_recipient_id (UUID | None, optional): UUID пользователя (чтобы создать пост ему на стене). Defaults to None.
-            attach_ids (list[UUID], optional): UUID вложений. Defaults to [].
+            attachment_ids (list[UUID], optional): UUID вложений. Defaults to [].
+            poll (PollData | None, optional): Опрос. Defaults to None.
 
         Raises:
             NotFound: Пользователь не найден
@@ -645,7 +646,8 @@ class Client:
         Returns:
             NewPost: Новый пост
         """
-        res = create_post(self.token, content, wall_recipient_id, attach_ids)
+        res = create_post(self.token, content, wall_recipient_id, attachment_ids, poll.poll if poll else None)
+
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('Wall recipient')
         if res.status_code == 422 and 'found' in res.json():
@@ -653,6 +655,41 @@ class Client:
         res.raise_for_status()
 
         return NewPost.model_validate(res.json())
+
+    @refresh_on_error
+    def vote(self, id: UUID, option_ids: list[UUID]) -> Poll:
+        """Проголосовать в опросе
+
+        Args:
+            id (UUID): UUID поста
+            option_ids (list[UUID]): Список UUID вариантов
+
+        Raises:
+            EmptyOptions: Пустые варианты
+            NotFound: Пост не найден или в посте нет опроса
+            NotFound: _description_
+            OptionsNotBelong: Неверные варианты (варинты не пренадлежат опросу)
+            NotMultipleChoice: Можно выбрать только 1 вариант (для опросов, где не разрешены несколько ответов)
+
+        Returns:
+            Poll: Опрос
+        """
+        if not option_ids:
+            raise EmptyOptions()
+
+        res = vote(self.token, id, option_ids)
+
+        if res.json().get('error', {}).get('code') == 'NOT_FOUND' and res.json().get('error', {}).get('message') == 'Опрос не найден':
+            raise NotFound('Poll')
+        if res.json().get('error', {}).get('code') == 'NOT_FOUND':
+            raise NotFound('Post')
+        if res.json().get('error', {}).get('code') == 'VALIDATION_ERROR' and res.json().get('error', {}).get('message') == 'Один или несколько вариантов не принадлежат этому опросу':
+            raise OptionsNotBelong()
+        if res.json().get('error', {}).get('code') == 'VALIDATION_ERROR' and res.json().get('error', {}).get('message') == 'В этом опросе можно выбрать только один вариант':
+            raise NotMultipleChoice()
+        res.raise_for_status()
+
+        return Poll.model_validate(res.json()['data'])
 
     @refresh_on_error
     def get_posts(self, cursor: int = 0, tab: PostsTab = PostsTab.POPULAR) -> tuple[list[Post], PostsPagintaion]:

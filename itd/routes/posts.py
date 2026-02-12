@@ -3,13 +3,16 @@ from uuid import UUID
 
 from itd.request import fetch
 from itd.enums import PostsTab
+from itd.models.post import NewPoll
 
-def create_post(token: str, content: str, wall_recipient_id: UUID | None = None, attachment_ids: list[UUID] = []):
-    data: dict = {'content': content}
+def create_post(token: str, content: str | None = None, wall_recipient_id: UUID | None = None, attachment_ids: list[UUID] = [], poll: NewPoll | None = None):
+    data: dict = {'content': content or ''}
     if wall_recipient_id:
         data['wallRecipientId'] = str(wall_recipient_id)
     if attachment_ids:
         data['attachmentIds'] = list(map(str, attachment_ids))
+    if poll:
+        data['poll'] = poll.model_dump()
 
     return fetch(token, 'post', 'posts', data)
 
@@ -43,11 +46,14 @@ def get_liked_posts(token: str, username_or_id: str | UUID, limit: int = 20, cur
 def get_user_posts(token: str, username_or_id: str | UUID, limit: int = 20, cursor: datetime | None = None):
     return fetch(token, 'get', f'posts/user/{username_or_id}', {'limit': limit, 'cursor': cursor})
 
-def restore_post(token: str, post_id: UUID):
-    return fetch(token, "post", f"posts/{post_id}/restore",)
+def restore_post(token: str, id: UUID):
+    return fetch(token, "post", f"posts/{id}/restore",)
 
-def like_post(token: str, post_id: UUID):
-    return fetch(token, "post", f"posts/{post_id}/like")
+def like_post(token: str, id: UUID):
+    return fetch(token, "post", f"posts/{id}/like")
 
-def unlike_post(token: str, post_id: UUID):
-    return fetch(token, "delete", f"posts/{post_id}/like")
+def unlike_post(token: str, id: UUID):
+    return fetch(token, "delete", f"posts/{id}/like")
+
+def vote(token: str, id: UUID, options: list[UUID]):
+    return fetch(token, 'post', f'posts/{id}/poll/vote', {'optionIds': [str(option) for option in options]})
