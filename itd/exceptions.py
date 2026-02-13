@@ -130,3 +130,7 @@ class NotMultipleChoice(Exception):
 class EmptyOptions(Exception):
     def __str__(self) -> str:
         return 'Options cannot be empty (pre-validation)'
+
+class ProfileRequired(Exception):
+    def __str__(self) -> str:
+        return 'No profile. Please create your profile first'

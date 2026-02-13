@@ -54,22 +54,30 @@ class Poll(_Poll):
             return datetime.strptime(v, '%Y-%m-%dT%H:%M:%S.%f')
 
 
-class _PostShort(TextObject):
+class Span(BaseModel):
+    length: int
+    offset: int
+    type: SpanType
+
+
+class _PostCounts(TextObject):
     likes_count: int = Field(0, alias='likesCount')
     comments_count: int = Field(0, alias='commentsCount')
     reposts_count: int = Field(0, alias='repostsCount')
     views_count: int = Field(0, alias='viewsCount')
 
+    spans: list[Span] = []
 
-class PostShort(_PostShort):
+
+class _PostAuthor(_PostCounts):
     author: UserPost
 
 
-class OriginalPost(PostShort):
+class OriginalPost(_PostAuthor):
     is_deleted: bool = Field(False, alias='isDeleted')
 
 
-class _Post(_PostShort):
+class _Post(_PostCounts):
     is_liked: bool = Field(False, alias='isLiked')
     is_reposted: bool = Field(False, alias='isReposted')
     is_viewed: bool = Field(False, alias='isViewed')
@@ -79,13 +87,13 @@ class _Post(_PostShort):
     attachments: list[PostAttach] = []
     comments: list[Comment] = []
 
-    original_post: OriginalPost | None = None
+    original_post: OriginalPost | None = None # for reposts
 
     wall_recipient_id: UUID | None = Field(None, alias='wallRecipientId')
     wall_recipient: UserPost | None = Field(None, alias='wallRecipient')
 
 
-class Post(_Post, PostShort):
+class Post(_Post, _PostAuthor):
     poll: Poll | None = None
 
 
