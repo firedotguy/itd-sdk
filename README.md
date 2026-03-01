@@ -1,10 +1,5 @@
 # itd-sdk
 Клиент ITD для python
-> [!CAUTION]
-> ~~Мой основной аккаунт itd_sdk был забанен. Новый акк - itdsdk. #димонверниаккаунты~~
-> ~~Проект больше не будет обнолвяться! яPR буду мержить~~
-> ладно, буду мейнтйнить потихоньку...
-
 
 ## Установка
 
@@ -147,4 +142,4 @@ fetch(c.token, 'метод', 'эндпоинт', {'данные': 'данные'
 Идея (и часть эндпоинтов): https://github.com/FriceKa/ITD-SDK-js
  - По сути этот проект является реворком, просто на другом языке
 
-Автор: ~~[itd_sdk](https://xn--d1ah4a.com/itd_sdk) забанили~~ [itdsdk](https://xn--d1ah4a.com/itdsdk) (в итд) [@desicars](https://t.me/desicars) (в тг)
+Автор: [itd_sdk](https://xn--d1ah4a.com/@itd_sdk) (в итд) [@desicars](https://t.me/desicars) (в тг)
