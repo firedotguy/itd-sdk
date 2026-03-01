@@ -15,7 +15,8 @@ class TextObject(BaseModel):
     @field_validator('created_at', mode='plain')
     @classmethod
     def validate_created_at(cls, v: str):
+        v = v.replace('Z', '+00:00')
         try:
             return datetime.strptime(v + '00', '%Y-%m-%d %H:%M:%S.%f%z')
         except ValueError:
-            return datetime.strptime(v, '%Y-%m-%dT%H:%M:%S.%fZ')
+            return datetime.fromisoformat(v)
