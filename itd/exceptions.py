@@ -49,11 +49,11 @@ class UserBanned(Exception):
         return 'User banned'
 
 class ValidationError(Exception):
-    def __init__(self, name: str, value: str):
-        self.name = name
-        self.value = value
+    # def __init__(self, name: str, value: str):
+    #     self.name = name
+    #     self.value = value
     def __str__(self):
-        return f'Failed validation on {self.name}: "{self.value}"'
+        return 'Failed validation'# on {self.name}: "{self.value}"'
 
 class PendingRequestExists(Exception):
     def __str__(self):
@@ -114,3 +114,23 @@ class NoContent(Exception):
 class AlreadyFollowing(Exception):
     def __str__(self) -> str:
         return 'Already following user'
+
+class AccountBanned(Exception):
+    def __str__(self) -> str:
+        return 'Account has been deactivated'
+
+class OptionsNotBelong(Exception):
+    def __str__(self) -> str:
+        return 'One or more options do not belong to poll'
+
+class NotMultipleChoice(Exception):
+    def __str__(self) -> str:
+        return 'Only one option can be choosen in this poll'
+
+class EmptyOptions(Exception):
+    def __str__(self) -> str:
+        return 'Options cannot be empty (pre-validation)'
+
+class ProfileRequired(Exception):
+    def __str__(self) -> str:
+        return 'No profile. Please create your profile first'

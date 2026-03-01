@@ -1,5 +1,9 @@
 # itd-sdk
 Клиент ITD для python
+> [!CAUTION]
+> ~~Мой основной аккаунт itd_sdk был забанен. Новый акк - itdsdk. #димонверниаккаунты~~
+> ~~Проект больше не будет обнолвяться! яPR буду мержить~~
+> ладно, буду мейнтйнить потихоньку...
 
 
 ## Установка
@@ -18,10 +22,25 @@ c = ITDClient('TOKEN', 'refresh_token=...; __ddg1_=...; __ddgid_=...; is_auth=1;
 
 print(c.get_me())
 ```
-
+<!--
 > [!NOTE]
 > Берите куки из запроса /auth/refresh. В остальных запросах нету refresh_token
-> ![cookie](cookie-screen.png)
+> ![cookie](cookie-screen.png) -->
+
+### Получение cookies
+
+Для получения access_token требуются cookies с `refresh_token`. Как их получить:
+
+1. Откройте [итд.com](https://xn--d1ah4a.com) в браузере
+2. Откройте DevTools (F12)
+3. Перейдите на вкладку **Network**
+4. Обновите страницу
+5. Найдите запрос к `/auth/refresh`
+6. Скопируйте значение **Cookie** из Request Headers
+> Пример: `refresh_token=123123A67BCdEfGG; is_auth=1`  
+> В cookies также могут присутствовать значения типа `__ddgX__` (DDoS-Guard cookies) или `_ym_XXXX` (`X` - любое число или буква). Они необязательные и их наличие не влияет на результат
+
+![cookie](cookie-screen.png)
 
 ---
 ### Скрипт на обновление имени
@@ -46,10 +65,9 @@ while True:
 ```python
 from itd import ITDClient
 
-c = ITDClient(None, '...')
+c = ITDClient(None, 'Ваши cookies')
 
-id = c.upload_file('любое-имя.png', open('реальное-имя-файла.png', 'rb'))['id']
-c.update_profile(banner_id=id)
+c.update_banner('имя-файла.png')
 print('баннер обновлен')
 
 ```
@@ -64,7 +82,27 @@ c.create_post('тест1') # создание постов
 # итд
 ```
 
-### SSE - прослушивание уведомлений в реальном времени
+### Стилизация постов ("спаны")
+С обновления 1.3.0 добавлена функция "спанов". Для парсинга пока поддерживается только html, но в будущем будет добавлен markdown.
+```python
+from itd import ITDClient
+from itd.utils import parse_html
+
+с = ITDClient(cookies='refresh_token=123')
+
+print(с.create_post(*parse_html('значит, я это щас отправил со своего клиента, <b>воот</b>. И еще тут спаны написаны через html, по типу < i > <i>11</i>')))
+```
+Поддерживаемые теги:
+ - `<b>`: жирный
+ - `<i>`: курсивный
+ - `<s>`: зачеркнутый
+ - `<u>`: подчеркнутый
+ - `<code>`: код
+ - `<spoiler>`: спойлер
+ - `<a href="https://google.com">`: ссылка
+ - `<q>`: цитата
+
+<!-- ### SSE - прослушивание уведомлений в реальном времени
 
 ```python
 from itd import ITDClient, StreamConnect, StreamNotification
@@ -88,7 +126,7 @@ for event in c.stream_notifications():
 - `wall_post` - пост на вашей стене
 - `comment` - комментарий к посту
 - `reply` - ответ на комментарий
-- `repost` - репост вашего поста
+- `repost` - репост вашего поста -->
 
 ### Кастомные запросы
 
@@ -103,17 +141,10 @@ fetch(c.token, 'метод', 'эндпоинт', {'данные': 'данные'
 > [!NOTE]
 > `xn--d1ah4a.com` - punycode от "итд.com"
 
-## Планы
-
- - Форматированные сообщения об ошибках
- - Логирование (через logging)
- - Добавление ООП (отдеьные классы по типу User или Post вместо обычного JSON)
- - Голосовые сообщения
-
 
 ## Прочее
-Лицезия: [MIT](./LICENSE)
+Лицезия: [MIT](./LICENSE)  
 Идея (и часть эндпоинтов): https://github.com/FriceKa/ITD-SDK-js
  - По сути этот проект является реворком, просто на другом языке
 
-Автор: [itd_sdk](https://xn--d1ah4a.com/itd_sdk) (в итд) [@desicars](https://t.me/desicars) (в тг)
+Автор: ~~[itd_sdk](https://xn--d1ah4a.com/itd_sdk) забанили~~ [itdsdk](https://xn--d1ah4a.com/itdsdk) (в итд) [@desicars](https://t.me/desicars) (в тг)

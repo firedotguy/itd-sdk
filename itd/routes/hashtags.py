@@ -1,4 +1,3 @@
-from warnings import deprecated
 from uuid import UUID
 from itd.request import fetch
 

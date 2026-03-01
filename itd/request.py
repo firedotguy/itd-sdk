@@ -3,7 +3,7 @@ from _io import BufferedReader
 from requests import Session
 from requests.exceptions import JSONDecodeError
 
-from itd.exceptions import InvalidToken, InvalidCookie, RateLimitExceeded, Unauthorized
+from itd.exceptions import InvalidToken, InvalidCookie, RateLimitExceeded, Unauthorized, AccountBanned, ProfileRequired
 
 s = Session()
 
@@ -39,6 +39,10 @@ def fetch(token: str, method: str, url: str, params: dict = {}, files: dict[str,
             raise RateLimitExceeded(res.json()['error'].get('retryAfter', 0))
         if res.json().get('error', {}).get('code') == 'UNAUTHORIZED':
             raise Unauthorized()
+        if res.json().get('error', {}).get('code') in ('ACCOUNT_BANNED', 'USER_BLOCKED'):
+            raise AccountBanned()
+        if res.json().get('error', {}).get('code') == 'PROFILE_REQUIRED':
+            raise ProfileRequired()
     except (JSONDecodeError, AttributeError):
         pass # todo
 

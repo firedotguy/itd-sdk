@@ -1,20 +1,19 @@
-# from warnings import deprecated
 from uuid import UUID
 from _io import BufferedReader
 from typing import cast, Iterator
 from datetime import datetime
-import json
-import time
+from json import JSONDecodeError, loads
+from time import sleep
 
 from requests.exceptions import ConnectionError, HTTPError
 from sseclient import SSEClient
 
-from itd.routes.users import get_user, update_profile, follow, unfollow, get_followers, get_following, update_privacy
+from itd.routes.users import get_user, update_profile, follow, unfollow, get_followers, get_following, update_privacy, update_privacy_new
 from itd.routes.etc import get_top_clans, get_who_to_follow, get_platform_status
 from itd.routes.comments import get_comments, add_comment, delete_comment, like_comment, unlike_comment, add_reply_comment, get_replies
 from itd.routes.hashtags import get_hashtags, get_posts_by_hashtag
 from itd.routes.notifications import get_notifications, mark_as_read, mark_all_as_read, get_unread_notifications_count, stream_notifications
-from itd.routes.posts import create_post, get_posts, get_post, edit_post, delete_post, pin_post, repost, view_post, get_liked_posts, restore_post, like_post, unlike_post, get_user_posts
+from itd.routes.posts import create_post, get_posts, get_post, edit_post, delete_post, pin_post, repost, view_post, get_liked_posts, restore_post, like_post, unlike_post, get_user_posts, vote
 from itd.routes.reports import report
 from itd.routes.search import search
 from itd.routes.files import upload_file, get_file, delete_file
@@ -24,10 +23,10 @@ from itd.routes.pins import get_pins, remove_pin, set_pin
 
 from itd.models.comment import Comment
 from itd.models.notification import Notification
-from itd.models.post import Post, NewPost
+from itd.models.post import Post, NewPost, PollData, Poll, Span
 from itd.models.clan import Clan
 from itd.models.hashtag import Hashtag
-from itd.models.user import User, UserProfileUpdate, UserPrivacy, UserFollower, UserWhoToFollow
+from itd.models.user import User, UserProfileUpdate, UserPrivacy, UserFollower, UserWhoToFollow, UserPrivacyData
 from itd.models.pagination import Pagination, PostsPagintaion, LikedPostsPagintaion
 from itd.models.verification import Verification, VerificationStatus
 from itd.models.report import NewReport
@@ -41,7 +40,7 @@ from itd.exceptions import (
     NoCookie, NoAuthData, SamePassword, InvalidOldPassword, NotFound, ValidationError, UserBanned,
     PendingRequestExists, Forbidden, UsernameTaken, CantFollowYourself, Unauthorized,
     CantRepostYourPost, AlreadyReposted, AlreadyReported, TooLarge, PinNotOwned, NoContent,
-    AlreadyFollowing, NotFoundOrForbidden
+    AlreadyFollowing, NotFoundOrForbidden, OptionsNotBelong, NotMultipleChoice, EmptyOptions
 )
 
 
@@ -195,7 +194,7 @@ class Client:
 
     @refresh_on_error
     def update_privacy(self, wall_closed: bool = False, private: bool = False) -> UserPrivacy:
-        """Обновить настройки приватности
+        """(УСТАРЕЛО! Используйте update_privacy_new) настройки приватности
 
         Args:
             wall_closed (bool, optional): Закрыть стену. Defaults to False.
@@ -205,6 +204,21 @@ class Client:
             UserPrivacy: Обновленные данные приватности
         """
         res = update_privacy(self.token, wall_closed, private)
+        res.raise_for_status()
+
+        return UserPrivacy.model_validate(res.json())
+
+    @refresh_on_error
+    def update_privacy_new(self, privacy: UserPrivacyData) -> UserPrivacy:
+        """Обновить настройки приватности
+
+        Args:
+            privacy (UserPrivacyData): Данные приватности
+
+        Returns:
+            UserPrivacy: Обновленные данные приватности
+        """
+        res = update_privacy_new(self.token, privacy)
         res.raise_for_status()
 
         return UserPrivacy.model_validate(res.json())
@@ -455,13 +469,13 @@ class Client:
 
     @refresh_on_error
     def get_replies(self, comment_id: UUID, limit: int = 50, page: int = 1, sort: str = 'oldest') -> tuple[list[Comment], Pagination]:
-        """Получить список комментариев
+        """Получить список ответов на комментарий
 
         Args:
             comment_id (UUID): UUID поста
             limit (int, optional): Лимит. Defaults to 50.
             page (int, optional): Курсор (сколько пропустить). Defaults to 1.
-            sort (str, optional): Сортировка. Defaults to 'oldesr'.
+            sort (str, optional): Сортировка. Defaults to 'oldest'.
 
         Raises:
             NotFound: Пост не найден
@@ -616,7 +630,6 @@ class Client:
         res = mark_all_as_read(self.token)
         res.raise_for_status()
 
-
     @refresh_on_error
     def get_unread_notifications_count(self) -> int:
         """Получить количество непрочитанных уведомлений
@@ -631,13 +644,15 @@ class Client:
 
 
     @refresh_on_error
-    def create_post(self, content: str, wall_recipient_id: UUID | None = None, attach_ids: list[UUID] = []) -> NewPost:
+    def create_post(self, content: str | None = None, spans: list[Span] = [], wall_recipient_id: UUID | None = None, attachment_ids: list[UUID] = [], poll: PollData | None = None) -> NewPost:
         """Создать пост
 
         Args:
-            content (str): Содержимое
+            content (str | None, optional): Содержимое. Defaults to None.
+            spans (lsit[Span], optional): Стилизация содержимого. Defaults to [].
             wall_recipient_id (UUID | None, optional): UUID пользователя (чтобы создать пост ему на стене). Defaults to None.
-            attach_ids (list[UUID], optional): UUID вложений. Defaults to [].
+            attachment_ids (list[UUID], optional): UUID вложений. Defaults to [].
+            poll (PollData | None, optional): Опрос. Defaults to None.
 
         Raises:
             NotFound: Пользователь не найден
@@ -646,7 +661,8 @@ class Client:
         Returns:
             NewPost: Новый пост
         """
-        res = create_post(self.token, content, wall_recipient_id, attach_ids)
+        res = create_post(self.token, content, [span.model_dump(mode="json") for span in spans], wall_recipient_id, attachment_ids, poll.poll if poll else None)
+
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('Wall recipient')
         if res.status_code == 422 and 'found' in res.json():
@@ -654,6 +670,41 @@ class Client:
         res.raise_for_status()
 
         return NewPost.model_validate(res.json())
+
+    @refresh_on_error
+    def vote(self, id: UUID, option_ids: list[UUID]) -> Poll:
+        """Проголосовать в опросе
+
+        Args:
+            id (UUID): UUID поста
+            option_ids (list[UUID]): Список UUID вариантов
+
+        Raises:
+            EmptyOptions: Пустые варианты
+            NotFound: Пост не найден или в посте нет опроса
+            NotFound: _description_
+            OptionsNotBelong: Неверные варианты (варинты не пренадлежат опросу)
+            NotMultipleChoice: Можно выбрать только 1 вариант (для опросов, где не разрешены несколько ответов)
+
+        Returns:
+            Poll: Опрос
+        """
+        if not option_ids:
+            raise EmptyOptions()
+
+        res = vote(self.token, id, option_ids)
+
+        if res.json().get('error', {}).get('code') == 'NOT_FOUND' and res.json().get('error', {}).get('message') == 'Опрос не найден':
+            raise NotFound('Poll')
+        if res.json().get('error', {}).get('code') == 'NOT_FOUND':
+            raise NotFound('Post')
+        if res.json().get('error', {}).get('code') == 'VALIDATION_ERROR' and res.json().get('error', {}).get('message') == 'Один или несколько вариантов не принадлежат этому опросу':
+            raise OptionsNotBelong()
+        if res.json().get('error', {}).get('code') == 'VALIDATION_ERROR' and res.json().get('error', {}).get('message') == 'В этом опросе можно выбрать только один вариант':
+            raise NotMultipleChoice()
+        res.raise_for_status()
+
+        return Poll.model_validate(res.json()['data'])
 
     @refresh_on_error
     def get_posts(self, cursor: int = 0, tab: PostsTab = PostsTab.POPULAR) -> tuple[list[Post], PostsPagintaion]:
@@ -994,8 +1045,9 @@ class Client:
 
         return File.model_validate(res.json())
 
+    # @deprecated # Этот декоратор появился в 3.13, а наша библиотека поддерживает с 3.9
     def update_banner(self, name: str) -> UserProfileUpdate:
-        """Обновить банер (шорткат из upload_file + update_profile)
+        """[DEPRECATED] Обновить банер (шорткат из upload_file + update_profile)
 
         Args:
             name (str): Имя файла
@@ -1005,6 +1057,19 @@ class Client:
         """
         id = self.upload_file(name, cast(BufferedReader, open(name, 'rb'))).id
         return self.update_profile(banner_id=id)
+
+    def update_banner_new(self, name: str) -> tuple[File, UserProfileUpdate]:
+        """Обновить банер (шорткат из upload_file + update_profile)
+
+        Args:
+            name (str): Имя файла
+
+        Returns:
+            File: Загруженный файл
+            UserProfileUpdate: Обновленный профиль
+        """
+        file = self.upload_file(name, cast(BufferedReader, open(name, 'rb')))
+        return file, self.update_profile(banner_id=file.id)
 
     @refresh_on_error
     def restore_post(self, post_id: UUID) -> None:
@@ -1088,62 +1153,63 @@ class Client:
 
         return res.json()['pin']
 
+
     @refresh_on_error
     def stream_notifications(self) -> Iterator[StreamConnect | StreamNotification]:
         """Слушать SSE поток уведомлений
-        
+
         Yields:
             StreamConnect | StreamNotification: События подключения или уведомления
-            
+
         Example:
             ```python
             from itd import ITDClient
-            
+
             client = ITDClient(cookies='refresh_token=...')
-            
+
             # Запуск прослушивания
             for event in client.stream_notifications():
                 if isinstance(event, StreamConnect):
                     print(f'Подключено: {event.user_id}')
                 else:
                     print(f'Уведомление: {event.type} от {event.actor.username}')
-                    
+
             # Остановка из другого потока или обработчика
             # client.stop_stream()
             ```
         """
         self._stream_active = True
-        
+
         while self._stream_active:
             try:
                 response = stream_notifications(self.token)
                 response.raise_for_status()
-                
+
                 client = SSEClient(response)
-                
+
                 for event in client.events():
                     if not self._stream_active:
                         response.close()
                         return
-                        
+
                     try:
                         if not event.data or event.data.strip() == '':
                             continue
-                            
-                        data = json.loads(event.data)
-                        
+
+                        data = loads(event.data)
+
                         if 'userId' in data and 'timestamp' in data and 'type' not in data:
                             yield StreamConnect.model_validate(data)
                         else:
                             yield StreamNotification.model_validate(data)
-                            
-                    except json.JSONDecodeError:
+
+                    except JSONDecodeError:
                         print(f'Не удалось распарсить сообщение: {event.data}')
                         continue
                     except Exception as e:
                         print(f'Ошибка обработки события: {e}')
                         continue
-                        
+
             except Unauthorized:
                 if self.cookies and self._stream_active:
                     print('Токен истек, обновляем...')
@@ -1155,27 +1221,27 @@ class Client:
                 if not self._stream_active:
                     return
                 print(f'Ошибка соединения: {e}, переподключение через 5 секунд...')
-                time.sleep(5)
+                sleep(5)
                 continue
-    
+
     def stop_stream(self):
         """Остановить прослушивание SSE потока
-        
+
         Example:
             ```python
             import threading
             from itd import ITDClient
-            
+
             client = ITDClient(cookies='refresh_token=...')
-            
+
             # Запуск в отдельном потоке
             def listen():
                 for event in client.stream_notifications():
                     print(event)
-            
+
             thread = threading.Thread(target=listen)
             thread.start()
-            
+
             # Остановка через 10 секунд
             import time
             time.sleep(10)
@@ -1183,4 +1249,5 @@ class Client:
             thread.join()
             ```
         """
+        print('stop event')
         self._stream_active = False

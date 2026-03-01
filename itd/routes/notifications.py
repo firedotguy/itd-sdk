@@ -16,7 +16,7 @@ def get_unread_notifications_count(token: str):
 
 def stream_notifications(token: str):
     """Получить SSE поток уведомлений
-    
+
     Returns:
         Response: Streaming response для SSE
     """
