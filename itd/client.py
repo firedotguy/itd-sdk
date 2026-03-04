@@ -656,6 +656,7 @@ class Client:
 
         Raises:
             NotFound: Пользователь не найден
+            Forbidden: Некоторые файлы не принадлежат вам
             ValidationError: Ошибка валидации
 
         Returns:
@@ -665,6 +666,8 @@ class Client:
 
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('Wall recipient')
+        if res.json().get('error', {}).get('message') == 'Некоторые файлы не принадлежат вам':
+            raise Forbidden('post - some files not owned')
         if res.status_code == 422 and 'found' in res.json():
             raise ValidationError(*list(res.json()['found'].items())[0])
         res.raise_for_status()
