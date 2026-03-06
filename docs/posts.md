@@ -2,7 +2,7 @@
 
 ## Создать пост
 ```python
-c.create_post(
+post = c.create_post(
     content='чиенбурбе круче чем #иванговно',
     spans=[],
     wall_recipient_id=None,
@@ -110,7 +110,7 @@ ID вложений.
 
 ## Проголосовать
 ```python
-c.vote(
+poll = c.vote(
     id=UUID('aa612e16-eb1f-4323-89ce-4eacda133672'),
     option_ids=[UUID('f12c70c7-141e-4dff-9e5b-87f039c7ba58')]
 )
@@ -148,4 +148,43 @@ ID опций для выбора (даже если в опросе можно 
         )
         ```
 
-## 
+---
+
+## Получить посты
+```python
+posts, pagination = c.get_posts(
+    cursor=0,
+    tab=PostsTab.POPULAR
+)
+```
+Лимит - 20 постов (не меняется).
+
+### Параметры
+
+#### cursor
+Курсор для пагинации (из `pagination.next_cursor`).
+
+!!! example
+
+    ```python
+    cursor = None
+
+    while True:
+        posts, pagination = c.get_posts(cursor=cursor)
+        cursor = pagination.next_cursor
+    ```
+
+#### tab
+Вкладка.
+
+ - `POPULAR`: Популярные
+ - `FOLLOWING`: Подписки
+ - `CLAN`: Лента кланов
+
+!!! example
+
+    ```python
+    from itd.enums import PostsTab
+
+    c.get_posts(tab=PostsTab.FOLLOWING)
+    ```
