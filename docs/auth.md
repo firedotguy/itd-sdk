@@ -17,19 +17,23 @@
 
 ## Инициализация
 
-=== "v1.0"
+=== "refresh"
 
     ```python
     from itd import ITDClient
 
-    # через refresh token
     c = ITDClient(cookies='refresh_token=xxx')
-
-    # через access token
-    c = ITDClient('eyXXX')
     ```
 
-=== "v2.0 (в разработке)"
+=== "access"
+
+    ```python
+    from itd import ITDClient
+
+    c = ITDClient('eyXXX')
+    ```
+<!--
+=== "v2.0"
 
     ```python
     from itd import ITDClient
@@ -39,4 +43,4 @@
 
     # через access token
     c = ITDClient(access_token='eyXXX')
-    ```
+    ``` -->

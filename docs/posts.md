@@ -18,6 +18,7 @@ c.create_post(
 
 #### spans
 Стилизация.
+
 !!! example
 
     Для получения этого списка можно использовать парсинг (на данный момент поддерживается только `html`):
@@ -39,8 +40,9 @@ ID получателя поста (для постов на стене). `Usern
 #### attachment_ids
 ID вложений.
 
-### poll
+#### poll
 Опросник.
+
 !!! example
 
     ```python
@@ -64,6 +66,7 @@ ID вложений.
 
 #### NotFound
 Получатель поста не найден.
+
 !!! example
 
     ```python
@@ -103,6 +106,7 @@ ID вложений.
     )
     ```
 
+---
 
 ## Проголосовать
 ```python
@@ -120,20 +124,28 @@ ID поста.
 #### option_ids
 ID опций для выбора (даже если в опросе можно выбрать только 1 вариант, все равно пишите как список).
 
-=== "1 опция"
+!!! example
 
-    ```python
-    c.vote(
-        id=UUID('aa612e16-eb1f-4323-89ce-4eacda133672'),
-        option_ids=[UUID('f12c70c7-141e-4dff-9e5b-87f039c7ba58')]
-    )
-    ```
+    === "1 опция"
 
-=== "несколько опций"
+        ```python
+        c.vote(
+            UUID('aa612e16-eb1f-4323-89ce-4eacda133672'),
+            [UUID('f12c70c7-141e-4dff-9e5b-87f039c7ba58')]
+        )
+        ```
 
-    ```python
-    c.vote(
-        id=UUID('aa612e16-eb1f-4323-89ce-4eacda133672'),
-        option_ids=[UUID('f12c70c7-141e-4dff-9e5b-87f039c7ba58'), UUID('f12c70c7-141e-4dff-9e5b-87f039c7ba58')]
-    )
-    ```
+    === "несколько опций"
+
+        ```python
+        c.vote(
+            UUID('a6135f23-bd75-441b-93b7-cf9cf04ef76c'),
+            [
+                UUID('6daf7815-b30a-4f98-8091-7a0e24caba6c'),
+                UUID('3add69ee-4dae-4a81-9e4a-3e0fe77c7be0'),
+                UUID('ac758a37-2cb5-45ba-b743-a0a11a2b8d3d')
+            ]
+        )
+        ```
+
+## 
