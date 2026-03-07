@@ -35,6 +35,10 @@ class PostsTab(Enum):
     POPULAR = 'popular'
     CLAN = 'clan'
 
+class UserPostSorting(Enum):
+    POPULAR = 'popular'
+    NEW = 'new'
+
 class AccessType(Enum):
     """Типы разрешений для видимости лайков и записей на стене"""
     NOBODY = 'nobody' # никто

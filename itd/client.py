@@ -34,7 +34,7 @@ from itd.models.file import File
 from itd.models.pin import Pin
 from itd.models.event import StreamConnect, StreamNotification
 
-from itd.enums import PostsTab, ReportTargetType, ReportTargetReason
+from itd.enums import PostsTab, ReportTargetType, ReportTargetReason, UserPostSorting
 from itd.request import set_cookies
 from itd.exceptions import (
     NoCookie, NoAuthData, SamePassword, InvalidOldPassword, NotFound, ValidationError, UserBanned,
@@ -876,13 +876,15 @@ class Client:
         res.raise_for_status()
 
     @refresh_on_error
-    def get_user_posts(self, username_or_id: str | UUID, limit: int = 20, cursor: datetime | None = None) -> tuple[list[Post], LikedPostsPagintaion]:
+    def get_user_posts(self, username_or_id: str | UUID, limit: int = 20, cursor: datetime | None = None, pinned_post_id: UUID | None = None, sort: UserPostSorting = UserPostSorting.NEW) -> tuple[list[Post], LikedPostsPagintaion]:
         """Получить список постов пользователя
 
         Args:
             username_or_id (str | UUID): UUID или username пользователя
             limit (int, optional): Лимит. Defaults to 20.
             cursor (datetime | None, optional): Сдвиг (next_cursor). Defaults to None.
+            pinned_post_id (UUID | None, optional): UUID закрепленного поста. Defaults to None.
+            sort (UserPostSorting | None, optional): Сортировка. Defaults to UserPostSorting.NEW.
 
         Raises:
             NotFound: Пользователь не найден
@@ -891,7 +893,7 @@ class Client:
             list[Post]: Список постов
             LikedPostsPagintaion: Пагинация
         """
-        res = get_user_posts(self.token, username_or_id, limit, cursor)
+        res = get_user_posts(self.token, username_or_id, limit, cursor, pinned_post_id, sort)
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('User')
         res.raise_for_status()
