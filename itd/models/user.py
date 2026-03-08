@@ -3,6 +3,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
+from itd.models.pin import ShortPin
+
 
 class UserPrivacy(BaseModel):
     private: bool | None = Field(None, alias='isPrivate') # none for not me
@@ -24,6 +26,7 @@ class UserNewPost(BaseModel):
     username: str | None = None
     display_name: str = Field(alias='displayName')
     avatar: str
+    pin: ShortPin | None = None
 
     verified: bool = False
 

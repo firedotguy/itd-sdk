@@ -2,20 +2,22 @@ from functools import wraps
 from uuid import UUID
 from _io import BufferedReader
 from typing import cast
+from datetime import datetime
 
-from requests.exceptions import HTTPError, ConnectionError
+from requests.exceptions import ConnectionError, HTTPError
 
 from itd.routes.users import get_user, update_profile, follow, unfollow, get_followers, get_following, update_privacy
 from itd.routes.etc import get_top_clans, get_who_to_follow, get_platform_status
 from itd.routes.comments import get_comments, add_comment, delete_comment, like_comment, unlike_comment, add_reply_comment
-from itd.routes.hashtags import get_hastags, get_posts_by_hastag
+from itd.routes.hashtags import get_hashtags, get_posts_by_hashtag
 from itd.routes.notifications import get_notifications, mark_as_read, mark_all_as_read, get_unread_notifications_count
-from itd.routes.posts import create_post, get_posts, get_post, edit_post, delete_post, pin_post, repost, view_post, get_liked_posts
+from itd.routes.posts import create_post, get_posts, get_post, edit_post, delete_post, pin_post, repost, view_post, get_liked_posts, restore_post, like_post, unlike_post
 from itd.routes.reports import report
 from itd.routes.search import search
 from itd.routes.files import upload_file
 from itd.routes.auth import refresh_token, change_password, logout
-from itd.routes.verification import verificate, get_verification_status
+from itd.routes.verification import verify, get_verification_status
+from itd.routes.pins import get_pins, remove_pin, set_pin
 
 from itd.models.comment import Comment
 from itd.models.notification import Notification
@@ -23,31 +25,39 @@ from itd.models.post import Post, NewPost
 from itd.models.clan import Clan
 from itd.models.hashtag import Hashtag
 from itd.models.user import User, UserProfileUpdate, UserPrivacy, UserFollower, UserWhoToFollow
-from itd.models.pagination import Pagination
+from itd.models.pagination import Pagination, PostsPagintaion, LikedPostsPagintaion
 from itd.models.verification import Verification, VerificationStatus
+from itd.models.report import NewReport
+from itd.models.file import File
+from itd.models.pin import Pin
 
+from itd.enums import PostsTab, ReportTargetType, ReportTargetReason
 from itd.request import set_cookies
-from itd.exceptions import NoCookie, NoAuthData, SamePassword, InvalidOldPassword, NotFound, ValidationError, UserBanned, PendingRequestExists, Forbidden, UsernameTaken
+from itd.exceptions import (
+    NoCookie, NoAuthData, SamePassword, InvalidOldPassword, NotFound, ValidationError, UserBanned,
+    PendingRequestExists, Forbidden, UsernameTaken, CantFollowYourself, Unauthorized,
+    CantRepostYourPost, AlreadyReposted, AlreadyReported, TooLarge, PinNotOwned
+)
 
 
 def refresh_on_error(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
+        if not self.cookies:
+            return func(self, *args, **kwargs)
+
         try:
             return func(self, *args, **kwargs)
         except HTTPError as e:
             if e.response.status_code == 401:
                 self.refresh_auth()
                 return func(self, *args, **kwargs)
-            raise e
-        except ConnectionError:
-            self.refresh_auth()
-            return func(self, *args, **kwargs)
+
     return wrapper
 
 
 class Client:
-    def __init__(self, token: str | None, cookies: str | None = None):
+    def __init__(self, token: str | None = None, cookies: str | None = None):
         self.cookies = cookies
 
         if token:
@@ -82,7 +92,7 @@ class Client:
         """Смена пароля
 
         Args:
-            old (str): Страый пароль
+            old (str): Старый пароль
             new (str): Новый пароль
 
         Raises:
@@ -205,6 +215,7 @@ class Client:
 
         Raises:
             NotFound: Пользователь не найден
+            CantFollowYourself: Невозможно подписаться на самого себе
 
         Returns:
             int: Число подписчиков после подписки
@@ -212,6 +223,8 @@ class Client:
         res = follow(self.token, username)
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('User')
+        if res.json().get('error', {}).get('code') == 'VALIDATION_ERROR' and res.status_code == 400:
+            raise CantFollowYourself()
         res.raise_for_status()
 
         return res.json()['followersCount']
@@ -282,7 +295,7 @@ class Client:
 
         return [UserFollower.model_validate(user) for user in res.json()['data']['users']], Pagination.model_validate(res.json()['data']['pagination'])
 
-
+    @deprecated("verificate устарел используйте verify")
     @refresh_on_error
     def verificate(self, file_url: str) -> Verification:
         """Отправить запрос на верификацию
@@ -296,7 +309,22 @@ class Client:
         Returns:
             Verification: Верификация
         """
-        res = verificate(self.token, file_url)
+        return self.verify(file_url)
+
+    @refresh_on_error
+    def verify(self, file_url: str) -> Verification:
+        """Отправить запрос на верификацию
+
+        Args:
+            file_url (str): Ссылка на видео
+
+        Raises:
+            PendingRequestExists: Запрос уже отправлен
+
+        Returns:
+            Verification: Верификация
+        """
+        res = verify(self.token, file_url)
         if res.json().get('error', {}).get('code') == 'PENDING_REQUEST_EXISTS':
             raise PendingRequestExists()
         res.raise_for_status()
@@ -315,10 +343,9 @@ class Client:
 
         return VerificationStatus.model_validate(res.json())
 
-
     @refresh_on_error
     def get_who_to_follow(self) -> list[UserWhoToFollow]:
-        """Получить список популярнык пользователей (кого читать)
+        """Получить список популярных пользователей (кого читать)
 
         Returns:
             list[UserWhoToFollow]: Список пользователей
@@ -354,12 +381,13 @@ class Client:
 
 
     @refresh_on_error
-    def add_comment(self, post_id: UUID, content: str) -> Comment:
+    def add_comment(self, post_id: UUID, content: str, attachment_ids: list[UUID] = []) -> Comment:
         """Добавить комментарий
 
         Args:
             post_id (str): UUID поста
             content (str): Содержание
+            attachment_ids (list[UUID]): Список UUID прикреплённых файлов
             reply_comment_id (UUID | None, optional): ID коммента для ответа. Defaults to None.
 
         Raises:
@@ -369,7 +397,7 @@ class Client:
         Returns:
             Comment: Комментарий
         """
-        res = add_comment(self.token, post_id, content)
+        res = add_comment(self.token, post_id, content, attachment_ids)
         if res.status_code == 422 and 'found' in res.json():
             raise ValidationError(*list(res.json()['found'].items())[0])
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
@@ -380,13 +408,14 @@ class Client:
 
 
     @refresh_on_error
-    def add_reply_comment(self, comment_id: UUID, content: str, author_id: UUID) -> Comment:
+    def add_reply_comment(self, comment_id: UUID, content: str, author_id: UUID, attachment_ids: list[UUID] = []) -> Comment:
         """Добавить ответный комментарий
 
         Args:
             comment_id (str): UUID комментария
             content (str): Содержание
             author_id (UUID | None, optional): ID пользователя, отправившего комментарий. Defaults to None.
+            attachment_ids (list[UUID]): Список UUID прикреплённых файлов
 
         Raises:
             ValidationError: Ошибка валидации
@@ -395,7 +424,7 @@ class Client:
         Returns:
             Comment: Комментарий
         """
-        res = add_reply_comment(self.token, comment_id, content, author_id)
+        res = add_reply_comment(self.token, comment_id, content, author_id, attachment_ids)
         if res.status_code == 500 and 'Failed query' in res.text:
             raise NotFound('User')
         if res.status_code == 422 and 'found' in res.json():
@@ -492,7 +521,7 @@ class Client:
             raise Forbidden('delete comment')
         res.raise_for_status()
 
-
+    @deprecated("get_hastags устарел используйте get_hashtags")
     @refresh_on_error
     def get_hastags(self, limit: int = 10) -> list[Hashtag]:
         """Получить список популярных хэштэгов
@@ -503,7 +532,19 @@ class Client:
         Returns:
             list[Hashtag]: Список хэштэгов
         """
-        res = get_hastags(self.token, limit)
+        return self.get_hashtags(limit)
+
+    @refresh_on_error
+    def get_hashtags(self, limit: int = 10) -> list[Hashtag]:
+        """Получить список популярных хэштэгов
+
+        Args:
+            limit (int, optional): Лимит. Defaults to 10.
+
+        Returns:
+            list[Hashtag]: Список хэштэгов
+        """
+        res = get_hashtags(self.token, limit)
         res.raise_for_status()
 
         return [Hashtag.model_validate(hashtag) for hashtag in res.json()['data']['hashtags']]
@@ -522,7 +563,7 @@ class Client:
             list[Post]: Посты
             Pagination: Пагинация
         """
-        res = get_posts_by_hastag(self.token, hashtag, limit, cursor)
+        res = get_posts_by_hashtag(self.token, hashtag, limit, cursor)
         res.raise_for_status()
         data = res.json()['data']
 
@@ -586,6 +627,20 @@ class Client:
 
     @refresh_on_error
     def create_post(self, content: str, wall_recipient_id: UUID | None = None, attach_ids: list[UUID] = []) -> NewPost:
+        """Создать пост
+
+        Args:
+            content (str): Содержимое
+            wall_recipient_id (UUID | None, optional): UUID пользователя (чтобы создать пост ему на стене). Defaults to None.
+            attach_ids (list[UUID], optional): UUID вложений. Defaults to [].
+
+        Raises:
+            NotFound: Пользователь не найден
+            ValidationError: Ошибка валидации
+
+        Returns:
+            NewPost: Новый пост
+        """
         res = create_post(self.token, content, wall_recipient_id, attach_ids)
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('Wall recipient')
@@ -596,72 +651,373 @@ class Client:
         return NewPost.model_validate(res.json())
 
     @refresh_on_error
-    def get_posts(self, username: str | None = None, limit: int = 20, cursor: int = 0, sort: str = '', tab: str = ''):
-        return get_posts(self.token, username, limit, cursor, sort, tab)
+    def get_posts(self, cursor: int = 0, tab: PostsTab = PostsTab.POPULAR) -> tuple[list[Post], PostsPagintaion]:
+        """Получить список постов
+
+        Args:
+            cursor (int, optional): Страница. Defaults to 0.
+            tab (PostsTab, optional): Вкладка (популярное или подписки). Defaults to PostsTab.POPULAR.
+
+        Returns:
+            list[Post]: Список постов
+            Pagination: Пагинация
+        """
+        res = get_posts(self.token, cursor, tab)
+        res.raise_for_status()
+        data = res.json()['data']
+
+        return [Post.model_validate(post) for post in data['posts']], PostsPagintaion.model_validate(data['pagination'])
 
     @refresh_on_error
-    def get_post(self, id: str):
-        return get_post(self.token, id)
+    def get_post(self, id: UUID) -> Post:
+        """Получить пост
+
+        Args:
+            id (UUID): UUID поста
+
+        Raises:
+            NotFound: Пост не найден
+
+        Returns:
+            Post: Пост
+        """
+        res = get_post(self.token, id)
+        if res.json().get('error', {}).get('code') == 'NOT_FOUND':
+            raise NotFound('Post')
+        res.raise_for_status()
+
+        return Post.model_validate(res.json()['data'])
 
     @refresh_on_error
-    def edit_post(self, id: str, content: str):
-        return edit_post(self.token, id, content)
+    def edit_post(self, id: UUID, content: str) -> str:
+        """Редактировать пост
+
+        Args:
+            id (UUID): UUID поста
+            content (str): Содержимое
+
+        Raises:
+            NotFound: Пост не найден
+            Forbidden: Нет доступа
+            ValidationError: Ошибка валидации
+
+        Returns:
+            str: Новое содержимое
+        """
+        res = edit_post(self.token, id, content)
+
+        if res.json().get('error', {}).get('code') == 'NOT_FOUND':
+            raise NotFound('Post')
+        if res.json().get('error', {}).get('code') == 'FORBIDDEN':
+            raise Forbidden('edit post')
+        if res.status_code == 422 and 'found' in res.json():
+            raise ValidationError(*list(res.json()['found'].items())[0])
+        res.raise_for_status()
+
+        return res.json()['content']
 
     @refresh_on_error
-    def delete_post(self, id: str):
-        return delete_post(self.token, id)
+    def delete_post(self, id: UUID) -> None:
+        """Удалить пост
+
+        Args:
+            id (UUID): UUID поста
+
+        Raises:
+            NotFound: Пост не найден
+            Forbidden: Нет доступа
+        """
+        res = delete_post(self.token, id)
+        if res.status_code == 204:
+            return
+
+        if res.json().get('error', {}).get('code') == 'NOT_FOUND':
+            raise NotFound('Post')
+        if res.json().get('error', {}).get('code') == 'FORBIDDEN':
+            raise Forbidden('delete post')
+        res.raise_for_status()
 
     @refresh_on_error
-    def pin_post(self, id: str):
-        return pin_post(self.token, id)
+    def pin_post(self, id: UUID):
+        """Закрепить пост
+
+        Args:
+            id (UUID): UUID поста
+
+        Raises:
+            NotFound: Пост не найден
+            Forbidden: Нет доступа
+        """
+        res = pin_post(self.token, id)
+
+        if res.json().get('error', {}).get('code') == 'NOT_FOUND':
+            raise NotFound('Post')
+        if res.json().get('error', {}).get('code') == 'FORBIDDEN':
+            raise Forbidden('pin post')
+        res.raise_for_status()
 
     @refresh_on_error
-    def repost(self, id: str, content: str | None = None):
-        return repost(self.token, id, content)
+    def repost(self, id: UUID, content: str | None = None) -> NewPost:
+        """Репостнуть пост
+
+        Args:
+            id (UUID): UUID поста
+            content (str | None, optional): Содержимое (доп. комментарий). Defaults to None.
+
+        Raises:
+            NotFound: Пост не найден
+            AlreadyReposted: Пост уже репостнут
+            CantRepostYourPost: Нельзя репостить самого себя
+            ValidationError: Ошибка валидации
+
+        Returns:
+            NewPost: Новый пост
+        """
+        res = repost(self.token, id, content)
+
+        if res.json().get('error', {}).get('code') == 'NOT_FOUND':
+            raise NotFound('Post')
+        if res.json().get('error', {}).get('code') == 'CONFLICT':
+            raise AlreadyReposted()
+        if res.status_code == 422 and res.json().get('message') == 'Cannot repost your own post':
+            raise CantRepostYourPost()
+        if res.status_code == 422 and 'found' in res.json():
+            raise ValidationError(*list(res.json()['found'].items())[0])
+        res.raise_for_status()
+
+        return NewPost.model_validate(res.json())
 
     @refresh_on_error
-    def view_post(self, id: str):
-        return view_post(self.token, id)
+    def view_post(self, id: UUID) -> None:
+        """Просмотреть пост
+
+        Args:
+            id (UUID): UUID поста
+
+        Raises:
+            NotFound: Пост не найден
+        """
+        res = view_post(self.token, id)
+        if res.status_code == 204:
+            return
+        if res.json().get('error', {}).get('code') == 'NOT_FOUND':
+            raise NotFound('Post')
+        res.raise_for_status()
 
     @refresh_on_error
-    def get_liked_posts(self, username: str, limit: int = 20, cursor: int = 0):
-        return get_liked_posts(self.token, username, limit, cursor)
+    def get_liked_posts(self, username_or_id: str | UUID, limit: int = 20, cursor: datetime | None = None) -> tuple[list[Post], LikedPostsPagintaion]:
+        """Получить список лайкнутых постов пользователя
+
+        Args:
+            username_or_id (str | UUID): UUID или username пользователя
+            limit (int, optional): Лимит. Defaults to 20.
+            cursor (datetime | None, optional): Сдвиг (next_cursor). Defaults to None.
+
+        Raises:
+            NotFound: Пользователь не найден
+
+        Returns:
+            list[Post]: Список постов
+            LikedPostsPagintaion: Пагинация
+        """
+        res = get_liked_posts(self.token, username_or_id, limit, cursor)
+        if res.json().get('error', {}).get('code') == 'NOT_FOUND':
+            raise NotFound('User')
+        res.raise_for_status()
+        data = res.json()['data']
+
+        return [Post.model_validate(post) for post in data['posts']], LikedPostsPagintaion.model_validate(data['pagination'])
 
 
     @refresh_on_error
-    def report(self, id: str, type: str = 'post', reason: str = 'other', description: str = ''):
-        return report(self.token, id, type, reason, description)
+    def report(self, id: UUID, type: ReportTargetType = ReportTargetType.POST, reason: ReportTargetReason = ReportTargetReason.OTHER, description: str | None = None) -> NewReport:
+        """Отправить жалобу
+
+        Args:
+            id (UUID): UUID цели
+            type (ReportTargetType, optional): Тип цели (пост/пользователь/комментарий). Defaults to ReportTargetType.POST.
+            reason (ReportTargetReason, optional): Причина. Defaults to ReportTargetReason.OTHER.
+            description (str | None, optional): Описание. Defaults to None.
+
+        Raises:
+            NotFound: Цель не найдена
+            AlreadyReported: Жалоба уже отправлена
+            ValidationError: Ошибка валидации
+
+        Returns:
+            NewReport: Новая жалоба
+        """
+        res = report(self.token, id, type, reason, description)
+
+        if res.json().get('error', {}).get('code') == 'VALIDATION_ERROR' and 'не найден' in res.json()['error'].get('message', ''):
+            raise NotFound(type.value.title())
+        if res.json().get('error', {}).get('code') == 'VALIDATION_ERROR' and 'Вы уже отправляли жалобу' in res.json()['error'].get('message', ''):
+            raise AlreadyReported(type.value.title())
+        if res.status_code == 422 and 'found' in res.json():
+            raise ValidationError(*list(res.json()['found'].items())[-1])
+        res.raise_for_status()
+
+        return NewReport.model_validate(res.json()['data'])
+
 
     @refresh_on_error
-    def report_user(self, id: str, reason: str = 'other', description: str = ''):
-        return report(self.token, id, 'user', reason, description)
+    def search(self, query: str, user_limit: int = 5, hashtag_limit: int = 5) -> tuple[list[UserWhoToFollow], list[Hashtag]]:
+        """Поиск по пользователям и хэштэгам
+
+        Args:
+            query (str): Запрос
+            user_limit (int, optional): Лимит пользователей. Defaults to 5.
+            hashtag_limit (int, optional): Лимит хэштэгов. Defaults to 5.
+
+        Raises:
+            TooLarge: Слишком длинный запрос
+
+        Returns:
+            list[UserWhoToFollow]: Список пользователей
+            list[Hashtag]: Список хэштэгов
+        """
+        res = search(self.token, query, user_limit, hashtag_limit)
+
+        if res.status_code == 414:
+            raise TooLarge()
+        res.raise_for_status()
+        data = res.json()['data']
+
+        return [UserWhoToFollow.model_validate(user) for user in data['users']], [Hashtag.model_validate(hashtag) for hashtag in data['hashtags']]
 
     @refresh_on_error
-    def report_post(self, id: str, reason: str = 'other', description: str = ''):
-        return report(self.token, id, 'post', reason, description)
+    def search_user(self, query: str, limit: int = 5) -> list[UserWhoToFollow]:
+        """Поиск пользователей
+
+        Args:
+            query (str): Запрос
+            limit (int, optional): Лимит. Defaults to 5.
+
+        Returns:
+            list[UserWhoToFollow]: Список пользователей
+        """
+        return self.search(query, limit, 0)[0]
 
     @refresh_on_error
-    def report_comment(self, id: str, reason: str = 'other', description: str = ''):
-        return report(self.token, id, 'comment', reason, description)
+    def search_hashtag(self, query: str, limit: int = 5) -> list[Hashtag]:
+        """Поиск хэштэгов
+
+        Args:
+            query (str): Запрос
+            limit (int, optional): Лимит. Defaults to 5.
+
+        Returns:
+            list[Hashtag]: Список хэштэгов
+        """
+        return self.search(query, 0, limit)[1]
 
 
     @refresh_on_error
-    def search(self, query: str, user_limit: int = 5, hashtag_limit: int = 5):
-        return search(self.token, query, user_limit, hashtag_limit)
+    def upload_file(self, name: str, data: BufferedReader) -> File:
+        """Загрузить файл
 
-    @refresh_on_error
-    def search_user(self, query: str, limit: int = 5):
-        return search(self.token, query, limit, 0)
+        Args:
+            name (str): Имя файла
+            data (BufferedReader): Содержимое (open('имя', 'rb'))
 
-    @refresh_on_error
-    def search_hashtag(self, query: str, limit: int = 5):
-        return search(self.token, query, 0, limit)
+        Returns:
+            File: Файл
+        """
+        res = upload_file(self.token, name, data)
+        res.raise_for_status()
 
-
-    @refresh_on_error
-    def upload_file(self, name: str, data: BufferedReader):
-        return upload_file(self.token, name, data).json()
+        return File.model_validate(res.json())
 
     def update_banner(self, name: str) -> UserProfileUpdate:
-        id = self.upload_file(name, cast(BufferedReader, open(name, 'rb')))['id']
+        """Обновить банер (шорткат из upload_file + update_profile)
+
+        Args:
+            name (str): Имя файла
+
+        Returns:
+            UserProfileUpdate: Обновленный профиль
+        """
+        id = self.upload_file(name, cast(BufferedReader, open(name, 'rb'))).id
         return self.update_profile(banner_id=id)
+
+    @refresh_on_error
+    def restore_post(self, post_id: UUID) -> None:
+        """Восстановить удалённый пост
+
+        Args:
+            post_id: UUID поста
+        """
+        res = restore_post(self.token, post_id)
+        res.raise_for_status()
+
+    @refresh_on_error
+    def like_post(self, post_id: UUID) -> int:
+        """Лайкнуть пост
+
+        Args:
+            post_id (UUID): UUID поста
+
+        Raises:
+            NotFound: Пост не найден
+
+        Returns:
+            int: Количество лайков
+        """
+        res = like_post(self.token, post_id)
+
+        if res.status_code == 404:
+            raise NotFound("Post")
+
+        return res.json()['likesCount']
+
+    @refresh_on_error
+    def unlike_post(self, post_id: UUID) -> int:
+        """Убрать лайк с поста
+
+        Args:
+            post_id (UUID): UUID поста
+
+        Raises:
+            NotFound: Пост не найден
+
+        Returns:
+            int: Количество лайков
+        """
+        res = unlike_post(self.token, post_id)
+
+        if res.status_code == 404:
+            raise NotFound("Post not found")
+
+        return res.json()['likesCount']
+
+
+    @refresh_on_error
+    def get_pins(self) -> tuple[list[Pin], str]:
+        """Список пинов
+
+        Returns:
+            list[Pin]: Список пинов
+            str: Активный пин
+        """
+        res = get_pins(self.token)
+        res.raise_for_status()
+        data = res.json()['data']
+
+        return [Pin.model_validate(pin) for pin in data['pins']], data['activePin']
+
+    @refresh_on_error
+    def remove_pin(self):
+        """Снять пин"""
+        res = remove_pin(self.token)
+        res.raise_for_status()
+
+    @refresh_on_error
+    def set_pin(self, slug: str):
+        res = set_pin(self.token, slug)
+        if res.status_code == 422 and 'found' in res.json():
+            raise ValidationError(*list(res.json()['found'].items())[0])
+        if res.json().get('error', {}).get('code') == 'PIN_NOT_OWNED':
+            raise PinNotOwned(slug)
+        res.raise_for_status()
+
+        return res.json()['pin']

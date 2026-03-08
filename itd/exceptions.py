@@ -7,13 +7,21 @@ class NoAuthData(Exception):
         return 'No auth data. Provide token or cookies'
 
 class InvalidCookie(Exception):
+    def __init__(self, code: str):
+        self.code = code
     def __str__(self):
-        return f'Invalid cookie data'
+        if self.code == 'SESSION_NOT_FOUND':
+            return 'Invalid cookie data: Session not found (incorrect refresh token)'
+        elif self.code == 'REFRESH_TOKEN_MISSING':
+            return 'Invalid cookie data: No refresh token'
+        elif self.code == 'SESSION_EXPIRED':
+            return 'Invalid cookie data: Session expired'
+        # SESSION_REVOKED
+        return 'Invalid cookie data: Session revoked (logged out)'
 
 class InvalidToken(Exception):
     def __str__(self):
-        return f'Invalid access token'
-
+        return 'Invalid access token'
 
 class SamePassword(Exception):
     def __str__(self):
@@ -24,7 +32,7 @@ class InvalidOldPassword(Exception):
         return 'Old password is incorrect'
 
 class NotFound(Exception):
-    def __init__(self, obj):
+    def __init__(self, obj: str):
         self.obj = obj
     def __str__(self):
         return f'{self.obj} not found'
@@ -59,3 +67,35 @@ class Forbidden(Exception):
 class UsernameTaken(Exception):
     def __str__(self):
         return 'Username is already taken'
+
+class CantFollowYourself(Exception):
+    def __str__(self):
+        return 'Cannot follow yourself'
+
+class Unauthorized(Exception):
+    def __str__(self):
+        return 'Auth required - refresh token'
+
+class CantRepostYourPost(Exception):
+    def __str__(self):
+        return 'Cannot repost your own post'
+
+class AlreadyReposted(Exception):
+    def __str__(self):
+        return 'Post already reposted'
+
+class AlreadyReported(Exception):
+    def __init__(self, obj: str) -> None:
+        self.obj = obj
+    def __str__(self):
+        return f'{self.obj} already reported'
+
+class TooLarge(Exception):
+    def __str__(self):
+        return 'Search query too large'
+
+class PinNotOwned(Exception):
+    def __init__(self, pin: str) -> None:
+        self.pin = pin
+    def __str__(self):
+        return f'You do not own "{self.pin}" pin'

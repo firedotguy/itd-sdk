@@ -27,3 +27,7 @@ class ReportTargetReason(Enum):
 class AttachType(Enum):
     AUDIO = 'audio'
     IMAGE = 'image'
+
+class PostsTab(Enum):
+    FOLLOWING = 'following'
+    POPULAR = 'popular'
