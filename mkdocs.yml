@@ -26,3 +26,10 @@ markdown_extensions:
 
 extra_css:
   - stylesheets/extra.css
+
+nav:
+  - index.md
+  - launch.md
+  - base_errors.md
+  - auth.md
+  - posts.md

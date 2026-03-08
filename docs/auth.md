@@ -1,46 +1,40 @@
 # Авторизация
+Для выполнения любой из команд, связанных с авторизацией, нужен `refresh` токен.
 
-## Способы авторизации
-Чтобы получить доступ к аккаунту, потребуется `access` или `refresh` token.
+## Изменить пароль
+```python
+c.change_password(
+    old='12345678',
+    new='12345679'
+)
+```
+!!! danger
 
- * `access_token` - JWT токен, действует около 15 минут, обновляется при перезагрузке страницы.
- * `refresh_token` - Случайная строка, действует более месяца, обновляется при выходе и повторном входе.
+    После сброса пароля `refresh token` сбросится. Нужно входить заново.
 
-Найти `access token` можно в любом запросе в DevTools (открывается нажатием `F12`) во вкладке `Сеть` / `Network`:
-![access token](access-token.png)
+### Параметры
 
-Найти `refresh token` можно найти в запросе `/auth/refresh`:
-![refresh token](refresh-token.png)
-!!! info
-    Самое главное - "refresh token". Остальные куки - DDoS Guard и Яндекс Метрика
+#### old <span class="mdx-badge"><span class="mdx-badge__icon">:material-text:</span><span class="mdx-badge__text">str</span></span> <span class="mdx-badge mdx-badge_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">Required</span></span>
+Старый пароль.
+
+#### new <span class="mdx-badge"><span class="mdx-badge__icon">:material-text:</span><span class="mdx-badge__text">str</span></span> <span class="mdx-badge mdx-badge_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">Required</span></span>
+Новый пароль.
+
+### Ошибки
+ - `SamePassword` - пароли повторяются.
+ - `InvalidOldPassword` - старый пароль неверный.
+
+## Выйти
+```python
+c.logout()
+```
+
+!!! danger
+
+    После выхода `refresh token` может сбросится. Нужно входить заново.
 
 
-## Инициализация
-
-=== "refresh"
-
-    ```python
-    from itd import ITDClient
-
-    c = ITDClient(cookies='refresh_token=xxx')
-    ```
-
-=== "access"
-
-    ```python
-    from itd import ITDClient
-
-    c = ITDClient('eyXXX')
-    ```
-<!--
-=== "v2.0"
-
-    ```python
-    from itd import ITDClient
-
-    # через refresh token
-    c = ITDClient('xxx')
-
-    # через access token
-    c = ITDClient(access_token='eyXXX')
-    ``` -->
+## Обновить `access_token`
+```python
+token = c.refresh_auth()
+```

@@ -81,10 +81,10 @@ poll = c.vote(
 
 ### Параметры
 
-#### id <span class="mdx-badge"><span class="mdx-badge__icon">:material-identifier:</span><span class="mdx-badge__text">UUID</span></span> <span class="mdx-badge mdx-badge_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">Required</span></span>
+#### id <span class="mdx-badge"><span class="mdx-badge__icon">:material-identifier:</span><span class="mdx-badge__text">UUID</span></span> <span class="mdx-badge mdx-badge_required"> <span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">Required</span></span>
 ID поста.
 
-#### option_ids <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-list-unordered-16: :material-identifier:</span><span class="mdx-badge__text">list[UUID]</span></span> <span class="mdx-badge mdx-badge_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">Required</span></span>
+#### option_ids <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-list-unordered-16: :material-identifier:</span><span class="mdx-badge__text">list[UUID]</span></span> <span class="mdx-badge mdx-badge_required"> <span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">Required</span></span>
 ID опций для выбора (даже если в опросе можно выбрать только 1 вариант, все равно пишите как список).
 
 !!! example
@@ -117,10 +117,10 @@ ID опций для выбора (даже если в опросе можно 
 ```python
 posts, pagination = c.get_posts(
     cursor=0,
+    limit=20,
     tab=PostsTab.POPULAR
 )
 ```
-Лимит - 20 постов (не меняется).
 
 ### Параметры
 
@@ -136,6 +136,9 @@ posts, pagination = c.get_posts(
         posts, pagination = c.get_posts(cursor=cursor)
         cursor = pagination.next_cursor
     ```
+
+#### limit <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-number-16:</span><span class="mdx-badge__text">int</span></span>
+Лимит постов.
 
 #### tab <span class="mdx-badge"><span class="mdx-badge__icon">:material-form-select:</span><span class="mdx-badge__text">PostsTab</span></span>
 Вкладка.
@@ -167,7 +170,7 @@ post = c.get_post(
 ID поста.
 
 ### Ошибки
- - `NotFound`
+ - `NotFound` - пост не найден.
 
 ---
 
@@ -189,10 +192,10 @@ ID поста.
 Новое содержимое.
 
 #### spans  <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-list-unordered-16: :material-text-short:</span><span class="mdx-badge__text">list[Span]</span></span>
-Стилизация. [см. Пример заполнения](#spans)
+Стилизация. [см. Пример заполнения](#spans-listspan)
 
 ### Ошибки
- - `NotFound`
+ - `NotFound` - пост не найден.
  - `Forbidden` - пост не ваш.
  - `ValidationError` - ошибка валидации.
  - `EditExpired` - истекло время на редактирование. Редактирвоание разрешено только в первые 48ч после его публикации.
@@ -212,7 +215,7 @@ c.delete_post(
 ID поста.
 
 ### Ошибки
- - `NotFound`
+ - `NotFound` - пост не найден.
  - `Forbidden` - пост не ваш.
 
 ---
@@ -230,7 +233,7 @@ c.pin_post(
 ID поста.
 
 ### Ошибки
- - `NotFound`
+ - `NotFound` - пост не найден.
  - `Forbidden` - пост не на вашей стене.
 
 ---
@@ -252,10 +255,10 @@ ID поста.
 Дополнительная подпись.
 
 ### Ошибки
- - `NotFound`
- - `AlreadyReposted` - Пост уже репостнут.
- - `CantRepostYourPost` - Собственные посты нельзя репостить.
- - `ValidationError` - Ошибка валидации.
+ - `NotFound` - пост не найден.
+ - `AlreadyReposted` - пост уже репостнут.
+ - `CantRepostYourPost` - собственные посты нельзя репостить.
+ - `ValidationError` - ошибка валидации.
 
 ---
 
@@ -272,16 +275,20 @@ c.view_post(
 ID поста.
 
 ### Ошибки
- - `NotFound`
+ - `NotFound` - пост не найден.
 
 ---
 
 ### Получить посты пользователя
 ```python
+from itd.enums import UserPostSorting
+
 posts, pagination = c.get_user_posts(
     username_or_id='itd_sdk',
     limit=20,
-    cursor=None
+    cursor=None,
+    pinnned_post_id=None,
+    sort=UserPostSorting.NEW
 )
 ```
 
@@ -296,8 +303,18 @@ ID или `username` пользователя.
 #### cursor <span class="mdx-badge"><span class="mdx-badge__icon">:material-timer:</span><span class="mdx-badge__text">datetime</span></span>
 Курсор для пагинации (из `pagination.next_cursor`).
 
+#### pinned_post_id <span class="mdx-badge"><span class="mdx-badge__icon">:material-identifier:</span><span class="mdx-badge__text">UUID</span></span>
+ID закрепелнного поста (если `cursor=0`, то добавится в начало). Можно взять из `user.pinned_post_id`. Если пост не найден, закрепелнного поста не будет.
+
+#### sort <span class="mdx-badge"><span class="mdx-badge__icon">:material-form-select:</span><span class="mdx-badge__text">UserPostSorting</span></span>
+Сортировка.
+
+ - `NEW`: Новые
+ - `POPULAR`: Популярные
+
+
 ### Ошибки
- - `NotFound`
+ - `NotFound` - пользователь не найден.
 
 ---
 
@@ -322,4 +339,4 @@ ID или `username` пользователя.
 Курсор для пагинации (из `pagination.next_cursor`).
 
 ### Ошибки
- - `NotFound`
+ - `NotFound` - пользователь не найден.

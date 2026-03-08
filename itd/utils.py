@@ -64,12 +64,12 @@ class HTMLSpanParser(HTMLParser):
 
 
 def parse_html(text: str) -> tuple[str, list[Span]]:
-    """
+    r"""
     Парсит HTML-текст, извлекает чистый текст и spans с форматированием.
 
     Поддерживаемые теги:
-    - <b>, <i>, <s>, <u>, <code>, <spoiler>, <q>
-    - <a href="..."> (ссылки)
+    - \<b>, \<i>, \<s>, \<u>, \<code>, \<spoiler>, \<q>
+    - \<a href="..."> (ссылки)
 
     Args:
         text: HTML-строка для парсинга
