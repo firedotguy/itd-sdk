@@ -20,6 +20,8 @@ requires-python = ">=3.9"
 
 [dependency-groups]
 dev = [
+    "griffe-typingdoc>=0.3.0",
     "mkdocs<2.0.0",
     "mkdocs-material>=9.7.4",
+    "mkdocstrings[python]>=0.30.1",
 ]

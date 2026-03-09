@@ -401,7 +401,6 @@ class Client:
             post_id (str): UUID поста
             content (str): Содержание
             attachment_ids (list[UUID]): Список UUID прикреплённых файлов
-            reply_comment_id (UUID | None, optional): ID коммента для ответа. Defaults to None.
 
         Raises:
             ValidationError: Ошибка валидации

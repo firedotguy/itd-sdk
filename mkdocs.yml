@@ -3,7 +3,6 @@ repo_url: https://github.com/firedotguy/itd-sdk
 
 theme:
   name: material
-
   features:
     - navigation.footer
     - content.code.annotate
@@ -31,5 +30,34 @@ nav:
   - index.md
   - launch.md
   - base_errors.md
-  - auth.md
-  - posts.md
+  - Методы:
+    - methods/posts.md
+    - methods/auth.md
+  - API Reference:
+    - api/client.md
+    - api/models.md
+    - api/enums.md
+    - api/utils.md
+
+# часть кофига взята из aioitd
+plugins:
+    - mkdocstrings:
+        handlers:
+          python:
+            paths: [itd]
+            options:
+              extensions:
+                - griffe_typingdoc
+              docstring_style: google
+              show_source: false
+              separate_signature: true
+              filters:
+                - '!^_'
+              show_symbol_type_heading: true
+              show_symbol_type_toc: true
+              show_signature_annotations: true
+              signature_crossrefs: true
+              show_labels: false
+              show_if_no_docstring: true
+              inherited_members: true
+              unwrap_annotated: true
