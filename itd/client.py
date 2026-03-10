@@ -11,7 +11,8 @@ from sseclient import SSEClient
 
 from itd.routes.users import (
     get_user, update_profile, follow, unfollow, get_followers, get_following, update_privacy,
-    update_privacy_new, delete_account, restore_account, block, unblock, get_blocked
+    update_privacy_new, delete_account, restore_account, block, unblock, get_blocked,
+    get_follow_status
 )
 from itd.routes.etc import get_top_clans, get_who_to_follow, get_platform_status
 from itd.routes.comments import (
@@ -404,12 +405,37 @@ class Client:
         res.raise_for_status()
 
     @refresh_on_error
-    def get_blocked(self, limit: int = 20, page: int = 1):
+    def get_blocked(self, limit: int = 20, page: int = 1) -> tuple[list[UserBlock], PagePagination]:
+        """Получить список заблокированных пользователей
+
+        Args:
+            limit (int, optional): Лимит. Defaults to 20.
+            page (int, optional): Страница. Defaults to 1.
+
+        Returns:
+            list[UserBlock]: Список пользователей
+            PagePagination: Пагинация
+        """
         res = get_blocked(self.token, limit, page)
         res.raise_for_status()
 
         data = res.json()['data']
         return [UserBlock.model_validate(user) for user in data['users']], PagePagination.model_validate(data['pagination'])
+
+    @refresh_on_error
+    def get_follow_status(self, user_ids: list[UUID]) -> dict[UUID, bool]:
+        """Получить статус подписки (подписаны ли вы на пользователей)
+
+        Args:
+            user_ids (list[UUID]): Список пользователей для проверки
+
+        Returns:
+            dict[UUID, bool]: Словарь пользователей, где значение - полписаны вы или нет
+        """
+        res = get_follow_status(self.token, user_ids)
+        res.raise_for_status()
+
+        return {UUID(k): v for k, v in res.json()['data'].items()}
 
     @refresh_on_error
     def verify(self, file_url: str) -> Verification:
@@ -808,7 +834,7 @@ class Client:
         return Poll.model_validate(res.json()['data'])
 
     @refresh_on_error
-    def get_posts(self, cursor: int = 0, limit: int = 20, tab: PostsTab = PostsTab.POPULAR) -> tuple[list[Post], PostsPagintaion]:
+    def get_posts(self, cursor: int | datetime = 0, limit: int = 20, tab: PostsTab = PostsTab.POPULAR) -> tuple[list[Post], PostsPagintaion]:
         """Получить список постов
 
         Args:

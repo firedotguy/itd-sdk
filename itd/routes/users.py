@@ -57,3 +57,6 @@ def unblock(token: str, username_or_id: str | UUID):
 
 def get_blocked(token: str, limit: int = 20, page: int = 1):
     return fetch(token, 'get', 'users/me/blocked', {'limit': limit, 'page': page})
+
+def get_follow_status(token: str, user_ids: list[UUID]):
+    return fetch(token, 'post', 'users/follow-status', {'userIds': list(map(str, user_ids))})
