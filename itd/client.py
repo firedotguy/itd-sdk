@@ -1014,7 +1014,7 @@ class Client:
 
 
     @refresh_on_error
-    def upload_file(self, name: str, data: BufferedReader) -> File:
+    def upload_file(self, name: str, data: BufferedReader | bytes) -> File:
         """Загрузить файл
 
         Args:
