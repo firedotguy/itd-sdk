@@ -679,8 +679,8 @@ class Client:
             raise Forbidden('post - some files not owned')
         if res.json().get('error', {}).get('code') == 'VIDEO_REQUIRES_VERIFICATION':
             raise RequiresVerification('Video')
-        if res.status_code == 422 and 'found' in res.json():
-            raise ValidationError(*list(res.json()['found'].items())[0])
+        if res.json().get('error', {}).get('code') == 'VALIDATION_ERROR' or (res.status_code == 422 and 'found' in res.json()):
+            raise ValidationError()
         res.raise_for_status()
 
         return NewPost.model_validate(res.json())
