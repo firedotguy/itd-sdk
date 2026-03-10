@@ -152,3 +152,11 @@ class EditExpired(Exception):
 class UploadError(Exception):
     def __str__(self) -> str:
         return 'Failed to upload file'
+
+class AccountNotDeleted(Exception):
+    def __str__(self) -> str:
+        return 'Account is not deleted'
+
+class AccountAlreadyDeleted(Exception):
+    def __str__(self) -> str:
+        return 'Account already deleted'

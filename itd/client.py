@@ -9,7 +9,7 @@ from functools import wraps
 from requests.exceptions import HTTPError
 from sseclient import SSEClient
 
-from itd.routes.users import get_user, update_profile, follow, unfollow, get_followers, get_following, update_privacy, update_privacy_new
+from itd.routes.users import get_user, update_profile, follow, unfollow, get_followers, get_following, update_privacy, update_privacy_new, delete_account, restore_account
 from itd.routes.etc import get_top_clans, get_who_to_follow, get_platform_status
 from itd.routes.comments import get_comments, add_comment, delete_comment, like_comment, unlike_comment, add_reply_comment, get_replies
 from itd.routes.hashtags import get_hashtags, get_posts_by_hashtag
@@ -42,7 +42,7 @@ from itd.exceptions import (
     PendingRequestExists, Forbidden, UsernameTaken, CantFollowYourself, Unauthorized,
     CantRepostYourPost, AlreadyReposted, AlreadyReported, TooLarge, PinNotOwned, NoContent,
     AlreadyFollowing, NotFoundOrForbidden, OptionsNotBelong, NotMultipleChoice, EmptyOptions,
-    RequiresVerification, InvalidFileType, EditExpired, UploadError
+    RequiresVerification, InvalidFileType, EditExpired, UploadError, AccountNotDeleted, AccountAlreadyDeleted
 )
 
 
@@ -323,6 +323,21 @@ class Client:
 
         return [UserFollower.model_validate(user) for user in res.json()['data']['users']], Pagination.model_validate(res.json()['data']['pagination'])
 
+    @refresh_on_error
+    def delete_account(self):
+        res = delete_account(self.token)
+        if res.json().get('error', {}).get('code') == 'ALREADY_DELETED':
+            raise AccountAlreadyDeleted()
+        res.raise_for_status()
+
+        return res.json()['restoreDeadline']
+
+    @refresh_on_error
+    def restore_account(self):
+        res = restore_account(self.token)
+        if res.json().get('error', {}).get('code') == 'NOT_DELETED':
+            raise AccountNotDeleted()
+        res.raise_for_status()
 
     @refresh_on_error
     def verify(self, file_url: str) -> Verification:

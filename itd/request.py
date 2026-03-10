@@ -8,7 +8,7 @@ from itd.exceptions import InvalidToken, InvalidCookie, RateLimitExceeded, Unaut
 s = Session()
 
 
-def fetch(token: str, method: str, url: str, params: dict = {}, files: dict[str, tuple[str, BufferedReader]] = {}):
+def fetch(token: str, method: str, url: str, params: dict = {}, files: dict[str, tuple[str, BufferedReader | bytes]] = {}):
     base = f'https://xn--d1ah4a.com/api/{url}'
     headers = {
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
