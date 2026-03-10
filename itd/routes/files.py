@@ -4,7 +4,7 @@ from uuid import UUID
 from itd.request import fetch
 
 
-def upload_file(token: str, name: str, data: BufferedReader):
+def upload_file(token: str, name: str, data: BufferedReader | bytes):
     return fetch(token, 'post', 'files/upload', files={'file': (name, data)})
 
 def get_file(token: str, id: UUID):

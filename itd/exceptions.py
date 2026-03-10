@@ -115,9 +115,13 @@ class AlreadyFollowing(Exception):
     def __str__(self) -> str:
         return 'Already following user'
 
-class AccountBanned(Exception):
+class AccountBanned(Exception): # you banned
     def __str__(self) -> str:
         return 'Account has been deactivated'
+
+class TargetUserBanned(Exception): # target banned (eg if you try to follow banned user)
+    def __str__(self) -> str:
+        return 'Target user has been deactivated'
 
 class OptionsNotBelong(Exception):
     def __str__(self) -> str:
@@ -152,3 +156,23 @@ class EditExpired(Exception):
 class UploadError(Exception):
     def __str__(self) -> str:
         return 'Failed to upload file'
+
+class AccountNotDeleted(Exception):
+    def __str__(self) -> str:
+        return 'Account is not deleted'
+
+class AccountAlreadyDeleted(Exception):
+    def __str__(self) -> str:
+        return 'Account already deleted'
+
+class AlreadyBlocked(Exception):
+    def __str__(self) -> str:
+        return 'User already blocked'
+
+class NotBlocked(Exception):
+    def __str__(self) -> str:
+        return 'User is not blocked'
+
+class CantBlockYourself(Exception):
+    def __str__(self) -> str:
+        return 'Cannot block yourself'

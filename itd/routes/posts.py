@@ -18,8 +18,8 @@ def create_post(token: str, content: str | None = None, spans: list[dict] = [], 
 
     return fetch(token, 'post', 'posts', data)
 
-def get_posts(token: str, cursor: int = 0, limit: int = 20, tab: PostsTab = PostsTab.POPULAR):
-    return fetch(token, 'get', 'posts', {'cursor': cursor, 'limit': limit, 'tab': tab.value})
+def get_posts(token: str, cursor: int | datetime = 0, limit: int = 20, tab: PostsTab = PostsTab.POPULAR):
+    return fetch(token, 'get', 'posts', {'cursor': None if cursor == 0 else cursor, 'limit': limit, 'tab': tab.value})
 
 def get_post(token: str, id: UUID):
     return fetch(token, 'get', f'posts/{id}')

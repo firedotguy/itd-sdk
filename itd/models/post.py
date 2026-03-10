@@ -101,6 +101,17 @@ class Post(_Post, _PostAuthor):
     dominant: str | None = Field(None, alias='dominantEmoji')
     edited_at: datetime | None = Field(None, alias='editedAt')
 
+    @field_validator('edited_at', mode='plain')
+    @classmethod
+    def validate_edited_at(cls, v: str | None):
+        if v is None:
+            return
+        v = v.replace('Z', '+00:00')
+        try:
+            return datetime.strptime(v + '00', '%Y-%m-%d %H:%M:%S.%f%z')
+        except ValueError:
+            return datetime.fromisoformat(v)
+
 
 class NewPost(_Post):
     author: UserNewPost

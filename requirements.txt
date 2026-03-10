@@ -5,13 +5,13 @@ annotated-types==0.7.0
     # via pydantic
 certifi==2026.2.25
     # via requests
-charset-normalizer==3.4.4
+charset-normalizer==3.4.5
     # via requests
 idna==3.11
     # via requests
 pydantic==2.12.5
     # via itd-sdk
-pydantic-core==2.41.5
+pydantic-core==2.42.0
     # via pydantic
 requests==2.32.5
     # via itd-sdk
