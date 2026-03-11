@@ -171,6 +171,8 @@ class Client:
         res = get_user(self.token, username)
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('User')
+        if res.json().get('error', {}).get('message') == 'Этот аккаунт заблокирован':
+            raise TargetUserBanned()
         if res.json().get('error', {}).get('code') == 'USER_BLOCKED':
             raise UserBlocked()
         res.raise_for_status()
@@ -216,24 +218,9 @@ class Client:
 
         return UserProfileUpdate.model_validate(res.json())
 
-    @refresh_on_error
-    def update_privacy(self, wall_closed: bool = False, private: bool = False) -> UserPrivacy:
-        """(УСТАРЕЛО! Используйте update_privacy_new) настройки приватности
-
-        Args:
-            wall_closed (bool, optional): Закрыть стену. Defaults to False.
-            private (bool, optional): Приватность. На данный момент неизвестно, что делает этот параметр. Defaults to False.
-
-        Returns:
-            UserPrivacy: Обновленные данные приватности
-        """
-        res = update_privacy(self.token, wall_closed, private)
-        res.raise_for_status()
-
-        return UserPrivacy.model_validate(res.json())
 
     @refresh_on_error
-    def update_privacy_new(self, privacy: UserPrivacyData) -> UserPrivacy:
+    def update_privacy(self, privacy: UserPrivacyData) -> UserPrivacy:
         """Обновить настройки приватности
 
         Args:
@@ -270,6 +257,8 @@ class Client:
             raise CantFollowYourself()
         if res.json().get('error', {}).get('code') == 'BLOCKED':
             raise UserBlocked()
+        if res.json().get('error', {}).get('message') == 'Этот аккаунт заблокирован':
+            raise TargetUserBanned()
         res.raise_for_status()
 
         return res.json()['followersCount']
@@ -290,6 +279,8 @@ class Client:
         res = unfollow(self.token, username)
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('User')
+        if res.json().get('error', {}).get('message') == 'Этот аккаунт заблокирован':
+            raise TargetUserBanned()
         res.raise_for_status()
 
         return res.json()['followersCount']
@@ -305,6 +296,7 @@ class Client:
 
         Raises:
             NotFound: Пользователь не найден
+            TargetUserBanned: Пользователь заблокирован
 
         Returns:
             list[UserFollower]: Список подписчиков
@@ -313,6 +305,8 @@ class Client:
         res = get_followers(self.token, username, limit, page)
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFoundOrBlocked('User')
+        if res.json().get('error', {}).get('message') == 'Этот аккаунт заблокирован':
+            raise TargetUserBanned()
         res.raise_for_status()
 
         return [UserFollower.model_validate(user) for user in res.json()['data']['users']], Pagination.model_validate(res.json()['data']['pagination'])
@@ -336,6 +330,8 @@ class Client:
         res = get_following(self.token, username, limit, page)
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFoundOrBlocked('User')
+        if res.json().get('error', {}).get('message') == 'Этот аккаунт заблокирован':
+            raise TargetUserBanned()
         res.raise_for_status()
 
         return [UserFollower.model_validate(user) for user in res.json()['data']['users']], Pagination.model_validate(res.json()['data']['pagination'])
@@ -388,6 +384,8 @@ class Client:
             raise NotFound('User')
         if res.json().get('error', {}).get('message') == 'Cannot block yourself':
             raise CantBlockYourself()
+        if res.json().get('error', {}).get('message') == 'Этот аккаунт заблокирован':
+            raise TargetUserBanned()
         res.raise_for_status()
 
     @refresh_on_error
@@ -406,6 +404,8 @@ class Client:
             raise NotBlocked()
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('User')
+        if res.json().get('error', {}).get('message') == 'Этот аккаунт заблокирован':
+            raise TargetUserBanned()
         res.raise_for_status()
 
     @refresh_on_error
@@ -497,21 +497,9 @@ class Client:
 
         return [Clan.model_validate(clan) for clan in res.json()['clans']]
 
-    @refresh_on_error
-    def get_platform_status(self) -> bool:
-        """Получить статус платформы
-
-        Returns:
-            bool: read only
-        """
-        res = get_platform_status(self.token)
-        res.raise_for_status()
-
-        return res.json()['readOnly']
-
 
     @refresh_on_error
-    def add_comment(self, post_id: UUID, content: str, attachment_ids: list[UUID] = []) -> Comment:
+    def add_comment(self, post_id: UUID, content: str | None = None, attachment_ids: list[UUID] = []) -> Comment:
         """Добавить комментарий
 
         Args:

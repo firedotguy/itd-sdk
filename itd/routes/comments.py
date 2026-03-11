@@ -2,8 +2,8 @@ from uuid import UUID
 
 from itd.request import fetch
 
-def add_comment(token: str, post_id: UUID, content: str, attachment_ids: list[UUID] = []):
-    return fetch(token, 'post', f'posts/{post_id}/comments', {'content': content, "attachmentIds": list(map(str, attachment_ids))})
+def add_comment(token: str, post_id: UUID, content: str | None = None, attachment_ids: list[UUID] = []):
+    return fetch(token, 'post', f'posts/{post_id}/comments', {'content': content or '', "attachmentIds": list(map(str, attachment_ids))})
 
 def add_reply_comment(token: str, comment_id: UUID, content: str, author_id: UUID, attachment_ids: list[UUID] = []):
     return fetch(token, 'post', f'comments/{comment_id}/replies', {'content': content, 'replyToUserId': str(author_id), "attachmentIds": list(map(str, attachment_ids))})
