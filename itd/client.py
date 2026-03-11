@@ -58,7 +58,8 @@ from itd.exceptions import (
     CantRepostYourPost, AlreadyReposted, AlreadyReported, TooLarge, PinNotOwned, NoContent,
     AlreadyFollowing, NotFoundOrForbidden, OptionsNotBelong, NotMultipleChoice, EmptyOptions,
     RequiresVerification, InvalidFileType, EditExpired, UploadError, AccountNotDeleted,
-    AccountAlreadyDeleted, AlreadyBlocked, NotBlocked, CantBlockYourself
+    AccountAlreadyDeleted, AlreadyBlocked, NotBlocked, CantBlockYourself, TargetUserBanned,
+    UserBlocked
 )
 
 
@@ -173,7 +174,7 @@ class Client:
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
             raise NotFound('User')
         if res.json().get('error', {}).get('code') == 'USER_BLOCKED':
-            raise UserBanned()
+            raise UserBanned() # TODO: use UserBlocked
         res.raise_for_status()
 
         return User.model_validate(res.json())
@@ -269,6 +270,8 @@ class Client:
             raise AlreadyFollowing()
         if res.json().get('error', {}).get('message') == 'Cannot follow yourself':
             raise CantFollowYourself()
+        if res.json().get('error', {}).get('code') == 'BLOCKED':
+            raise UserBlocked()
         res.raise_for_status()
 
         return res.json()['followersCount']
@@ -311,7 +314,7 @@ class Client:
         """
         res = get_followers(self.token, username, limit, page)
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
-            raise NotFound('User')
+            raise NotFound('User') # TODO: replace to NotFoundOrBlocked
         res.raise_for_status()
 
         return [UserFollower.model_validate(user) for user in res.json()['data']['users']], Pagination.model_validate(res.json()['data']['pagination'])
@@ -334,7 +337,7 @@ class Client:
         """
         res = get_following(self.token, username, limit, page)
         if res.json().get('error', {}).get('code') == 'NOT_FOUND':
-            raise NotFound('User')
+            raise NotFound('User') # TODO: replace to NotFoundOrBlocked
         res.raise_for_status()
 
         return [UserFollower.model_validate(user) for user in res.json()['data']['users']], Pagination.model_validate(res.json()['data']['pagination'])
@@ -398,10 +401,13 @@ class Client:
 
         Raises:
             NotBlocked: Пользователь итак не заблокирован
+            NotFound: Пользователь не найден.
         """
         res = unblock(self.token, username_or_id)
         if res.json().get('error', {}).get('code') == 'CONFLICT':
             raise NotBlocked()
+        if res.json().get('error', {}).get('code') == 'NOT_FOUND':
+            raise NotFound('User')
         res.raise_for_status()
 
     @refresh_on_error

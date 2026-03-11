@@ -4,8 +4,7 @@ from requests import Response, Session
 from requests.exceptions import JSONDecodeError
 
 from itd.exceptions import (
-    InvalidToken, InvalidCookie, RateLimitExceeded, Unauthorized, AccountBanned, ProfileRequired,
-    TargetUserBanned
+    InvalidToken, InvalidCookie, RateLimitExceeded, Unauthorized, AccountBanned, ProfileRequired
 )
 
 s = Session()
@@ -39,8 +38,6 @@ def fetch(token: str, method: str, url: str, params: dict = {}, files: dict[str,
             raise Unauthorized()
         if res.json().get('error', {}).get('code') == 'ACCOUNT_BANNED':
             raise AccountBanned()
-        if res.json().get('error', {}).get('code') == 'USER_BLOCKED':
-            raise TargetUserBanned()
         if res.json().get('error', {}).get('code') == 'PROFILE_REQUIRED':
             raise ProfileRequired()
     except (JSONDecodeError, AttributeError):

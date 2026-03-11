@@ -9,7 +9,7 @@ from itd.enums import AccessType
 
 class _UserPrivacy(BaseModel):
     private: bool | None = Field(None, alias='isPrivate') # none for not me
-    wall_closed: bool | None = Field(None, alias='wallClosed', deprecated=True)
+    wall_closed: bool | None = Field(None, alias='wallClosed', deprecated=True) # TODO: remove
     wall_access: AccessType = Field(AccessType.EVERYONE, alias='wallAccess')
     likes_visibility: AccessType = Field(AccessType.EVERYONE, alias='likesVisibility')
 
@@ -96,7 +96,9 @@ class User(UserSearch, _UserPrivacy):
     posts_count: int = Field(0, alias='postsCount')
 
     is_followed: bool | None = Field(None, alias='isFollowedBy') # none for me
+    is_blocked: bool = Field(False, alias='isBlockedByMe')
+    is_blocking: bool = Field(False, alias='isBlockedByThem')
 
-    created_at: datetime = Field(alias='createdAt')
+    created_at: datetime | None = Field(None, alias='createdAt') # none for blocked
     last_seen_at: datetime | dict | None = Field(None, alias='lastSeen')
     online: bool = False

@@ -2,7 +2,7 @@ from itd import ITDClient
 
 c = ITDClient(cookies=input('token: '))
 
-with open('ПУТЬ/ДО/ГИФКИ.gif', 'rb') as f:
+with open('nowkie.gif', 'rb') as f:
     file_data = f.read()
 
 file_data = file_data.replace(b'\x00\x3b', b'\xee\x3b') # можно менять "\xff" (диапазон 00-ff, например 9b)
@@ -13,6 +13,4 @@ if file.mime_type == 'image/jpeg':
 
 print('link', file.url)
 
-c.create_post(
-    attachment_ids=[file.id]
-)
+c.add_comment('c4644803-4637-4d8d-8333-1944e4416377', '', attachment_ids=[file.id])

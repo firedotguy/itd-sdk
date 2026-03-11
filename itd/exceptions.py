@@ -176,3 +176,7 @@ class NotBlocked(Exception):
 class CantBlockYourself(Exception):
     def __str__(self) -> str:
         return 'Cannot block yourself'
+
+class UserBlocked(Exception):
+    def __str__(self) -> str:
+        return 'You blocked user or user blocked you'
