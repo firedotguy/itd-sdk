@@ -69,10 +69,9 @@ def refresh_on_error(func):
         if self.cookies:
             try:
                 return func(self, *args, **kwargs)
-            except HTTPError as e:
-                if e.response.status_code == 401:
-                    self.refresh_auth()
-                    return func(self, *args, **kwargs)
+            except Unauthorized:
+                self.refresh_auth()
+                return func(self, *args, **kwargs)
         else:
             return func(self, *args, **kwargs)
     return wrapper
