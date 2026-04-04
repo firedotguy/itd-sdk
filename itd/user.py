@@ -13,6 +13,7 @@ from itd.routes.users import (
     restore_account, get_blocked, get_privacy, update_privacy, update_profile, get_profile
 )
 from itd.routes.pins import get_pins, remove_pin
+from itd.routes.subscription import get_subscription
 from itd.client import Client
 from itd.utils import to_uuid
 
@@ -103,6 +104,34 @@ class _PrivacyValidate(BaseModel):
     pass
 
 
+class Subscription(ITDBaseModel):
+    _validator = lambda _: _SubscriptionValidate
+
+    active: bool = Field(False, alias='isActive')
+    expires_at: datetime | None = Field(None, alias='expiresAt')
+    auto_renewal: bool = Field(True, alias='autoRenewal')
+
+    def __init__(self, data: dict, client: Client | None = None):
+        super().__init__(client)
+
+        for name, value in _SubscriptionValidate.model_validate(data).__dict__.items():
+            setattr(self, name, value)
+
+    @refresh_wrapper
+    def refresh(self): # refreshes only is_active
+        return get_subscription(self.client).json()
+
+    def __bool__(self):
+        return self.active
+
+    def __str__(self) -> str:
+        return str(self.active)
+
+
+class _SubscriptionValidate(BaseModel, Subscription):
+    pass
+
+
 
 class _UserBase(ITDBaseModel):
     _identifier: str | UUID
@@ -166,6 +195,7 @@ class User(_UserBase):
     wall_access: AccessType | None = Field(None, alias='wallAccess') # none if blocked
     likes_visibility: AccessType | None = Field(None, alias='likesVisibility') # none if blocked
     is_private: bool | None = Field(None, alias='isPrivate') # none if following or blocked
+    is_subscribed: bool = Field(False, alias='hasNuksta')
 
     @classmethod
     def _from_dict(cls, data: dict, set_loaded: bool = True, client: Client | None = None):
@@ -245,6 +275,7 @@ class Me(_UserBase):
     likes_visibility: AccessType = Field(alias='likesVisibility')
     is_private: bool = Field(False, alias='isPrivate')
     is_phone_verified: bool = Field(alias='isPhoneVerified')
+    subscription: Subscription
 
     def __init__(self, client: Client | None = None) -> None:
         super().__init__('me', client)
@@ -358,6 +389,11 @@ class _MeValidate(BaseModel, Me):
     @classmethod
     def validate_pin(cls, pin: dict) -> Pin:
         return Pin(pin)
+
+    @field_validator('subscription', mode='plain')
+    @classmethod
+    def validate_subscription(cls, subscription: dict) -> Subscription:
+        return Subscription(subscription)
 
 
 

@@ -27,6 +27,7 @@ def catch_errors(*exceptions: ITDException):
                 if (
                     getattr(exception, '_reply_comment_user_not_found', False) and res.status_code == 500 and 'Failed query' in res.text or
                     getattr(exception, '_delete_comment_not_found', False) and res.status_code == 500 and res.text == 'Комментарий не найден' or
+                    getattr(exception, '_subscription_not_found', False) and res.json().get('error') == 'Активная подписка не найдена' or
                     isinstance(exception, ValidationError) and res.status_code == 422 and 'found' in res.json() or
 
                     exception.status_code is not None and res.status_code == exception.status_code or
@@ -79,18 +80,18 @@ class InvalidOldPassword(Exception):
 
 class NotFound(ITDException):
     code = 'NOT_FOUND'
-    def __init__(self, obj: str, message: str | None = None, _reply_comment_user_not_found: bool = False):
+    def __init__(self, obj: str, message: str | None = None, _reply_comment_user_not_found: bool = False, _subscription_not_found: bool = False):
         self.text = f'{obj} not found'
         if message:
             self.message = 'message'
         self._reply_comment_user_not_found = _reply_comment_user_not_found
+        self._subscription_not_found = _subscription_not_found
 
 class NotFoundOrForbidden(Exception):
     def __init__(self, obj: str):
         self.obj = obj
     def __str__(self):
         return f'{self.obj} not found or access denied'
-
 
 class UserBanned(Exception):
     def __str__(self):
@@ -230,3 +231,11 @@ class NotFoundOrBlocked(Exception):
 class NotPinned(ITDException):
     code = 'NOT_PINNED'
     text = 'Post not found or is not pinned'
+
+class InternalError(ITDException):
+    code = 'INTERNAL_ERROR'
+    text = 'Internal server error'
+
+class InvalidDisplayName(ITDException):
+    code = 'INVALID_DISPLAY_NAME'
+    text = 'Invalid display name'

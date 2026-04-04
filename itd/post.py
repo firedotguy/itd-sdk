@@ -109,7 +109,7 @@ class _BasePost(ITDBaseModel):
         post['author'] = (client or self.client).user
         self.reposts_count += 1
 
-        return Post._from_dict(post, client)
+        return Post._from_dict(post, client=client)
 
     def view(self, client: Client | None = None) -> None:
         """Просмотреть пост
@@ -218,12 +218,6 @@ class Post(_BasePost):
         self.id = to_uuid(id)
         super().__init__(client)
 
-        # if self.poll:
-        #     self.poll._client = self.client # TODO: add client on poll property
-        self.comments._client = self.client # TODO: fix refresh for comments
-        self.comments._post_id = self.id
-        self.comments.total = self.comments_count
-
 
     @classmethod
     def new(
@@ -267,11 +261,6 @@ class Post(_BasePost):
         for name, value in _PostValidate.model_validate(post).__dict__.items():
             setattr(instance, name, value)
 
-        if instance.poll:
-            instance.poll._client = instance.client
-        instance.comments._client = instance.client
-        instance.comments._post_id = instance.id
-        instance.comments.total = instance.comments_count
         instance._loaded = True
 
         return instance
@@ -284,13 +273,7 @@ class Post(_BasePost):
         for name, value in _PostValidate.model_validate(data).__dict__.items():
             setattr(instance, name, value)
 
-        if instance.poll:
-            instance.poll._client = instance.client
-        instance.comments._client = instance.client
-        instance.comments._post_id = instance.id
-        instance.comments.total = instance.comments_count
         instance._loaded = True
-
         return instance
 
 
@@ -320,9 +303,20 @@ class Post(_BasePost):
         self.client.user.pinned_post_id = None # TODO
 
     def edit(self, content: str, spans: list[Span] = [], client: Client | None = None) -> datetime:
-        updated_at =  super().edit(content, spans, client)
+        updated_at = super().edit(content, spans, client)
         self.edited_at = updated_at
         return updated_at
+
+
+    def __getattribute__(self, name: str):
+        value = super().__getattribute__(name)
+        if name == 'poll' and value is not None and value._client is None:
+            value._client = self.client
+        if name == 'comments' and getattr(value, '_post_id', None) is None:
+            value._client = self.client
+            value._post_id = self.id
+            # value.total = self.comments_count
+        return value
 
 
 
@@ -364,6 +358,7 @@ class _PostValidate(BaseModel, Post): # BaseModel MUST be first or you ll have s
 class OriginalPost(_BasePost):
     is_deleted: bool = Field(False, alias='isDeleted')
 
+    _validator = lambda _: _OriginalPostValidate
 
     def __init__(self, post: dict, client: Client | None = None) -> None:
         super().__init__(client)
@@ -378,6 +373,16 @@ class OriginalPost(_BasePost):
     def restore(self, client: Client | None = None) -> None:
         super().restore(client)
         self.is_deleted = False
+
+    def to_post(self, client: Client | None = None) -> Post:
+        instance = Post.__new__(Post)
+        super(Post, instance).__init__(client or self.client)
+
+        for name, value in self.__dict__.items():
+            setattr(instance, name, value)
+
+
+        return instance
 
 
 class _OriginalPostValidate(BaseModel, OriginalPost):

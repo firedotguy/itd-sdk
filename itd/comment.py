@@ -168,7 +168,6 @@ class Comments(ITDBaseModel, list[Comment]):
             return self
 
         left = count or limit # if None get [LIMIT] firstly
-        total_loaded = False
 
         while left > 0: # can be !=, but what if something went wrong
             data = get_comments(
@@ -179,10 +178,9 @@ class Comments(ITDBaseModel, list[Comment]):
             ).json()['data']
 
             self.has_more = data['hasMore']
+            self.total = data['total']
 
-            if count is None and not total_loaded:
-                total_loaded = True
-                self.total = data['total']
+            if count is None:
                 left = self.total - len(self)
 
             left -= len(data['comments'])
@@ -223,6 +221,10 @@ class Comments(ITDBaseModel, list[Comment]):
         self._sorting = value
         self.refresh()
 
+    @property
+    def all(self) -> 'Comments':
+        return self.load_all()
+
 
     def __setattr__(self, name: str, value) -> None:
         if name == '_client':
@@ -253,7 +255,6 @@ class Replies(Comments):
             return self
 
         left = count or limit # if None get [LIMIT] firstly
-        total_loaded = False
 
         while left > 0: # can be !=, but what if something went wrong
             data = get_replies(
@@ -263,10 +264,9 @@ class Replies(Comments):
                 min(limit, left), # not always [LIMIT] to not overflow (if left < [LIMIT], use left, [LIMIT] otherwise)
             ).json()['data']
             self.has_more = data['pagination']['hasMore']
+            self.total = data['pagination']['total']
 
-            if count is None and not total_loaded:
-                total_loaded = True
-                self.total = data['pagination']['total']
+            if count is None:
                 left = self.total - len(self)
 
             replies = data['replies']
