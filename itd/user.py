@@ -306,6 +306,7 @@ class Me(_UserBase):
         self._following = Following()
         self._pins: list[Pin] = []
         self.privacy: Privacy = Privacy._from_user(self, self.client)
+        self.profile: Profile = Profile(self.client)
 
 
     def to_user(self) -> User:
