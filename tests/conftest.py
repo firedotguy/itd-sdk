@@ -30,5 +30,13 @@ def client2(client):
 
 
 @pytest.fixture(scope="session")
+def client_sub(client):
+    token = getenv('TOKEN_SUB')
+    if not token:
+        pytest.skip('TOKEN_SUB not set in .env')
+    return ITDClient(token)
+
+
+@pytest.fixture(scope="session")
 def redis_post(client): # думаешь redis это какое нибудь заумное важное название? а нет, это просто редис зплвца
     return Post('1cbe5926-2d08-4e17-879d-7732b94ed354')
