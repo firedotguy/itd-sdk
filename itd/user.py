@@ -10,6 +10,7 @@ from itd.base import ITDBaseModel, refresh_wrapper
 from itd.enums import AccessType, ALL, All, Unset, Role
 from itd.exceptions import PinNotOwned
 from itd.pin import Pin
+from itd.routes.etc import get_who_to_follow
 from itd.routes.users import (
     get_user, follow, unfollow, block, unblock, get_followers, get_following, delete_account,
     restore_account, get_blocked, get_privacy, update_privacy, update_profile, get_profile
@@ -497,3 +498,15 @@ class Blocked(Followers):
 
     def _fetch(self, client: Client, page: int) -> dict:
         return get_blocked(client, page).json()['data']
+
+
+
+class WhoToFollow(ITDBaseModel, list[User]):
+    _refreshable = False
+
+    def __init__(self, client: Client | None = None) -> None:
+        super().__init__(client)
+        self.refresh()
+
+    def refresh(self):
+        self.extend([User._from_dict(user, False, self.client) for user in get_who_to_follow(self.client).json()['users']])
