@@ -1,12 +1,17 @@
 from enum import Enum
 
 class NotificationType(Enum):
-    WALL_POST = 'wall_post'
+    LIKE = 'like'
+    COMMENT = 'comment'
     REPLY = 'reply'
     REPOST = 'repost'
-    COMMENT = 'comment'
+    MENTION = 'mention'
     FOLLOW = 'follow'
-    LIKE = 'like'
+    FOLLOW_REQUEST = 'follow_request'
+    FOLLOW_ACCEPTED = 'follow_accepted'
+    COMMENT_LIKE = 'comment_reaction'
+    COMMENT_MENTION = 'comment_mention'
+    WALL_POST = 'wall_post'
 
 class NotificationTargetType(Enum):
     POST = 'post'

@@ -28,6 +28,7 @@ def catch_errors(*exceptions: ITDException):
                     getattr(exception, '_reply_comment_user_not_found', False) and res.status_code == 500 and 'Failed query' in res.text or
                     getattr(exception, '_delete_comment_not_found', False) and res.status_code == 500 and res.text == 'Комментарий не найден' or
                     getattr(exception, '_subscription_not_found', False) and res.json().get('error') == 'Активная подписка не найдена' or
+                    getattr(exception, '_notification_read_error', False) and res.json().get('success') is False or
                     isinstance(exception, ValidationError) and res.status_code == 422 and 'found' in res.json() or
 
                     exception.status_code is not None and res.status_code == exception.status_code or
@@ -243,3 +244,7 @@ class InvalidDisplayName(ITDException):
 class ModerationFailed(ITDException):
     code = 'CONTENT_MODERATION_ERROR'
     text = 'Unable to moderate image'
+
+class NotificationNotFoundOrNotBelongOrAlreadyRead(ITDException):
+    text = 'Notification not found, not belong to you or already read'
+    _notification_read_error = True
