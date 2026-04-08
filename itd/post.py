@@ -108,7 +108,7 @@ class _BasePost(ITDBaseModel):
             Post: Пост
         """
         post = repost(client or self.client, self.id, content).json()
-        post['author'] = (client or self.client).user
+        post['author'] = None
         self.reposts_count += 1
 
         return Post._from_dict(post, client=client)
@@ -237,7 +237,7 @@ class Post(_BasePost):
             content (str | None, optional): Содержимое. Defaults to None.
             spans (list[Span], optional): Спаны. Defaults to [].
             wall_recipient_id (UUID | str | None, optional): Получатель (для постов на чужой стене). Defaults to None.
-            attachment_ids (list[UUID  |  str], optional): Вложения. Defaults to [].
+            attachment_ids (list[UUID | str], optional): Вложения. Defaults to [].
             poll (NewPoll | None, optional): Опрос. Defaults to None.
             client (Client | None, optional): Клиент. Defaults to None.
 
@@ -258,7 +258,7 @@ class Post(_BasePost):
             poll
         ).json()
 
-        post['author'] = instance.client.user # TODO: fix fetching user
+        post['author'] = None # author is loaded lazily on access via __getattribute__
 
         validated = _PostValidate.model_validate(post)
         instance._fields_from_data = validated.model_fields_set
@@ -319,6 +319,16 @@ class Post(_BasePost):
 
 
     def __getattribute__(self, name: str):
+        if name == 'author':
+            try:
+                author = object.__getattribute__(self, 'author')
+            except AttributeError:
+                author = None
+            if author is None:
+                client = object.__getattribute__(self, '_client')
+                if client is not None:
+                    object.__setattr__(self, 'author', client.user)
+
         value = super().__getattribute__(name)
         if name == 'comments' and getattr(value, '_post_id', None) is None:
             value._post_id = self.id
@@ -360,7 +370,9 @@ class _PostValidate(BaseModel, Post): # BaseModel MUST be first or you ll have s
 
     @field_validator('author', mode='plain')
     @classmethod
-    def validate_author(cls, author: dict | _UserBase):
+    def validate_author(cls, author: dict | _UserBase | None):
+        if author is None:
+            return None
         if isinstance(author, _UserBase):
             return author
         return User._from_dict(author, False)
