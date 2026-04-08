@@ -46,9 +46,9 @@ def update_privacy(client: Client, is_private: bool | None = None, wall_access: 
     if is_private is not None:
         data['isPrivate'] = is_private
     if wall_access:
-        data['wallAccess'] = wall_access
+        data['wallAccess'] = wall_access.value
     if likes_visibility:
-        data['likesVisibility'] = likes_visibility
+        data['likesVisibility'] = likes_visibility.value
     if show_last_seen is not None:
         data['showLastSeen'] = show_last_seen
     return client.request('put', 'users/me/privacy', data)

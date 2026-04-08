@@ -68,7 +68,7 @@ class Privacy(ITDBaseModel):
 
     @refresh_wrapper
     def refresh(self, client: Client | None = None):
-        return get_privacy(client or self.client)
+        return get_privacy(client or self.client).json()
 
     def update(self,
         is_private: bool | None = None,
@@ -87,9 +87,9 @@ class Privacy(ITDBaseModel):
         if data['showLastSeen']:
             self.show_last_seen = data['showLastSeen']
 
-        if self._user:
-            for field in ('wall_access', 'likes_visibility', 'is_private'):
-                setattr(self._user, field, getattr(self, field))
+        # if self._user: # TODO
+        #     for field in ('wall_access', 'likes_visibility', 'is_private'):
+        #         setattr(self._user, field, getattr(self, field))
 
     def update_from_fields(self): # you can update fields (like privacy.is_private = True), then exec this func to update
         self.update(self.is_private, self.wall_access, self.likes_visibility, self.show_last_seen)
@@ -314,6 +314,7 @@ class Me(_UserBase):
         self._pins: list[Pin] = []
         self.privacy: Privacy = Privacy._from_user(self, self.client)
         self.profile: Profile = Profile(self.client)
+        self.client._user = self
 
 
     def to_user(self) -> User:
