@@ -7,7 +7,8 @@ from itd.base import ITDBaseModel, refresh_wrapper
 from itd.client import Client
 from itd.comment import Comment, Comments
 from itd.enums import PostsTab, UserPostSorting
-from itd.models.post import Span, PostAttach
+from itd.models.post import Span
+from itd.file import PostAttach
 from itd.user import User, _UserBase
 from itd.poll import Poll, NewPoll, PollOption
 from itd.routes.posts import (
@@ -200,7 +201,7 @@ class Post(_BasePost):
     id: UUID
 
     poll: Poll | None = None
-    attachments: list[PostAttach] = []
+    attachments: list[PostAttach]
     edited_at: datetime | None = Field(None, alias='editedAt')
 
     is_liked: bool = Field(False, alias='isLiked')

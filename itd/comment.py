@@ -10,8 +10,7 @@ from itd.enums import CommentSorting, All, ALL
 from itd.utils import parse_datetime, to_uuid, to_nullable_uuid
 from itd.routes.comments import get_comments, add_comment, add_reply_comment, get_replies, like_comment, unlike_comment, delete_comment
 from itd.models.user import UserPost
-from itd.models.file import Attach
-
+from itd.file import CommentAttach
 
 class Comment(ITDBaseModel):
     _refreshable = False
@@ -26,7 +25,7 @@ class Comment(ITDBaseModel):
     replies_count: int = Field(0, alias='repliesCount')
     is_liked: bool = Field(False, alias='isLiked')
 
-    attachments: list[Attach] = []
+    attachments: list[CommentAttach]
     replies: 'Replies' = Field(default_factory=lambda: Replies(_empty=True))
     reply_to: UserPost | None = None # author of replied comment, if this comment is reply
 
