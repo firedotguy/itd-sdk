@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from itd.enums import ReportTargetType, ReportTargetReason
+from itd.enums import ReportTargetType, ReportReason
 
 
 class NewReport(BaseModel):
@@ -12,7 +12,7 @@ class NewReport(BaseModel):
 
 
 class Report(NewReport):
-    reason: ReportTargetReason
+    reason: ReportReason
     description: str | None = None
 
     target_type: ReportTargetType = Field(alias='targetType')

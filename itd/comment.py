@@ -6,7 +6,8 @@ from pydantic import Field, BaseModel, field_validator
 
 from itd.base import ITDBaseModel
 from itd.client import Client
-from itd.enums import CommentSorting, All, ALL
+from itd.enums import CommentSorting, All, ALL, ReportTargetType, ReportReason
+from itd.report import Report
 from itd.utils import parse_datetime, to_uuid, to_nullable_uuid
 from itd.routes.comments import get_comments, add_comment, add_reply_comment, get_replies, like_comment, unlike_comment, delete_comment
 from itd.models.user import UserPost
@@ -46,6 +47,9 @@ class Comment(ITDBaseModel):
 
     def __str__(self) -> str:
         return self.content
+
+    def report(self, reason: ReportReason, description: str | None = None, client: Client | None = None) -> Report:
+        return Report(self.id, ReportTargetType.COMMENT, reason, description, client or self.client)
 
     def reply(self, content: str | None = None, attachment_ids: list[UUID | str] = [], user_id: UUID | None = None, client: Client | None = None) -> 'Comment':
         """Ответить на комментарий

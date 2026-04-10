@@ -53,7 +53,7 @@ from itd.models.file import File
 from itd.models.pin import Pin
 from itd.models.event import StreamConnect, StreamNotification
 
-from itd.enums import PostsTab, ReportTargetType, ReportTargetReason, UserPostSorting, Unset
+from itd.enums import PostsTab, ReportTargetType, ReportReason, UserPostSorting, Unset
 from itd.request import decode_jwt_payload
 from itd.exceptions import (
     NoCookie, NoAuthData, SamePassword, InvalidOldPassword, NotFound, ValidationError,
@@ -652,7 +652,7 @@ class Client:
 
 
     @refresh_on_error
-    def report(self, id: UUID, type: ReportTargetType = ReportTargetType.POST, reason: ReportTargetReason = ReportTargetReason.OTHER, description: str | None = None) -> NewReport:
+    def report(self, id: UUID, type: ReportTargetType = ReportTargetType.POST, reason: ReportReason = ReportReason.OTHER, description: str | None = None) -> NewReport:
         """Отправить жалобу
 
         Args:

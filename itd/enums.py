@@ -21,7 +21,7 @@ class ReportTargetType(Enum):
     USER = 'user'
     COMMENT = 'comment'
 
-class ReportTargetReason(Enum):
+class ReportReason(Enum):
     SPAM = 'spam' # спам
     VIOLENCE = 'violence' # насилие
     HATE = 'hate' # ненависть

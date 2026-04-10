@@ -4,13 +4,14 @@ from datetime import datetime
 from pydantic import Field, BaseModel, field_validator
 
 from itd.base import ITDBaseModel, refresh_wrapper
-from itd.client import Client, Client as ITDClient
+from itd.client import Client
 from itd.comment import Comment, Comments
-from itd.enums import PostsTab, UserPostSorting
+from itd.enums import PostsTab, UserPostSorting, ReportReason, ReportTargetType
 from itd.models.post import Span
 from itd.file import PostAttach
 from itd.user import User, _UserBase
 from itd.poll import Poll, NewPoll, PollOption
+from itd.report import Report
 from itd.routes.posts import (
     get_post, create_post, like_post, unlike_post, repost, view_post, pin_post, unpin_post,
     delete_post, restore_post, edit_post, get_posts, get_user_posts, get_liked_posts
@@ -190,6 +191,9 @@ class _BasePost(ITDBaseModel):
         comment = self.comments.new(content, attachment_ids, client or self.client)
         self.comments_count += 1
         return comment
+
+    def report(self, reason: ReportReason, description: str | None = None, client: Client | None = None) -> Report:
+        return Report(self.id, ReportTargetType.POST, reason, description, client or self.client)
 
     @property
     def url(self) -> str:

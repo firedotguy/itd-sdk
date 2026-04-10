@@ -7,9 +7,10 @@ from math import ceil
 from pydantic import Field, BaseModel, field_validator
 
 from itd.base import ITDBaseModel, refresh_wrapper
-from itd.enums import AccessType, ALL, All, Unset, Role
+from itd.enums import AccessType, ALL, All, Unset, Role, ReportReason, ReportTargetType
 from itd.exceptions import PinNotOwned
 from itd.pin import Pin
+from itd.report import Report
 from itd.routes.etc import get_who_to_follow
 from itd.routes.users import (
     get_user, follow, unfollow, block, unblock, get_followers, get_following, delete_account,
@@ -249,6 +250,9 @@ class User(_UserBase):
     @classmethod
     def me(cls, client: Client | None = None) -> 'Me':
         return Me(client)
+
+    def report(self, reason: ReportReason, description: str | None = None, client: Client | None = None) -> Report:
+        return Report(self.id, ReportTargetType.USER, reason, description, client or self.client)
 
     def follow(self, client: Client | None = None) -> int:
         self.followers_count = follow(client or self.client, self._identifier).json()['followersCount']

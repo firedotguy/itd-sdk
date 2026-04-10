@@ -28,6 +28,7 @@ def catch_errors(*exceptions: ITDException):
                     getattr(exception, '_reply_comment_user_not_found', False) and res.status_code == 500 and 'Failed query' in res.text or
                     getattr(exception, '_delete_comment_not_found', False) and res.status_code == 500 and res.text == 'Комментарий не найден' or
                     getattr(exception, '_liked_posts_user_not_found', False) and res.status_code == 404 and res.text == 'NOT_FOUND' or
+                    getattr(exception, '_report_target_not_found', False) and res.status_code == 400 and 'не найден' in res.json().get('error', {}).get('message', '') or
                     getattr(exception, '_subscription_not_found', False) and res.json().get('error') == 'Активная подписка не найдена' or
                     getattr(exception, '_hashtag_not_found', False) and res.json().get('data', {}).get('hashtag', '') == None or
                     getattr(exception, '_notification_read_error', False) and res.json().get('success') is False or
@@ -90,7 +91,8 @@ class NotFound(ITDException):
         _reply_comment_user_not_found: bool = False,
         _subscription_not_found: bool = False,
         _hashtag_not_found: bool = False,
-        _liked_posts_user_not_found: bool = False
+        _liked_posts_user_not_found: bool = False,
+        _report_target_not_found: bool = False
     ):
         self.text = f'{obj} not found'
         if message:
@@ -99,6 +101,7 @@ class NotFound(ITDException):
         self._subscription_not_found = _subscription_not_found
         self._hashtag_not_found = _hashtag_not_found
         self._liked_posts_user_not_found = _liked_posts_user_not_found
+        self._report_target_not_found = _report_target_not_found
 
 class NotFoundOrForbidden(Exception):
     def __init__(self, obj: str):
@@ -149,11 +152,9 @@ class AlreadyReposted(ITDException):
     code = 'CONFLICT'
     text = 'Post already reposted'
 
-class AlreadyReported(Exception):
-    def __init__(self, obj: str) -> None:
-        self.obj = obj
-    def __str__(self):
-        return f'{self.obj} already reported'
+class AlreadyReported(ITDException):
+    message = 'Вы уже отправляли жалобу на этот контент'
+    text = 'Object already reported'
 
 class TooLarge(ITDException):
     status_code = 414
