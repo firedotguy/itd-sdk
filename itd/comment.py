@@ -192,7 +192,7 @@ class Comments(ITDBaseModel, list[Comment]):
 
             comments = data['comments']
             left -= len(comments)
-            if not comments or not self.has_more:
+            if not comments:
                 break
 
             print(f'fetched {len(comments)} left={left} (was {len(self)})')
@@ -268,7 +268,7 @@ class Replies(Comments):
             data = get_replies(
                 client or self._client,
                 self._comment.id,
-                ceil(len(self) / min(limit, left)), # page equals already loaded divide by [LIMIT]
+                ceil(max(len(self), 1) / min(limit, left)), # page equals already loaded divide by [LIMIT]
                 min(limit, left), # not always [LIMIT] to not overflow (if left < [LIMIT], use left, [LIMIT] otherwise)
             ).json()['data']
             self.has_more = data['pagination']['hasMore']
@@ -280,7 +280,7 @@ class Replies(Comments):
             replies = data['replies']
             left -= len(replies)
 
-            if not replies or not self.has_more:
+            if not replies:
                 break
 
             if left < 0: # um what
