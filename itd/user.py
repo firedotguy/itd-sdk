@@ -79,13 +79,13 @@ class Privacy(ITDBaseModel):
         client: Client | None = None
     ):
         data = update_privacy(client or self.client, is_private, wall_access, likes_visibility, show_last_seen).json()
-        if data['isPrivate']:
+        if 'isPrivate' in data:
             self.is_private = data['isPrivate']
-        if data['wallAccess']:
+        if 'wallAccess' in data:
             self.wall_access = AccessType(data['wallAccess'])
-        if data['likesVisibility']:
+        if 'likesVisibility' in data:
             self.likes_visibility = AccessType(data['likesVisibility'])
-        if data['showLastSeen']:
+        if 'showLastSeen' in data:
             self.show_last_seen = data['showLastSeen']
 
         # if self._user: # TODO
