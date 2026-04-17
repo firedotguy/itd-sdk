@@ -72,7 +72,7 @@ class ITDBaseModel:
                 (name not in fields_from_data and _field_has_default(type(self), name)) or
                 (attr is None and not _field_has_default(type(self), name)) or
                 isinstance(attr, FieldInfo) or
-                isinstance(attr, ITDBaseModel) and attr._load_with_parent
+                (isinstance(attr, ITDBaseModel) and attr._load_with_parent)
             ):
                 self.refresh()
 

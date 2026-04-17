@@ -279,7 +279,7 @@ class Post(_BasePost):
         return instance
 
     @classmethod
-    def _from_dict(cls, data: dict, client: Client | None = None) -> 'Post':
+    def _from_dict(cls, data: dict, set_loaded: bool = True, client: Client | None = None) -> 'Post':
         instance = cls.__new__(cls)
         super(Post, instance).__init__(client)
 
@@ -288,7 +288,7 @@ class Post(_BasePost):
         for name, value in validated.__dict__.items():
             setattr(instance, name, value)
 
-        instance._loaded = True
+        instance._loaded = set_loaded
         return instance
 
 
@@ -448,6 +448,7 @@ class _OriginalPostValidate(BaseModel, OriginalPost):
 
 class _BasePosts(ITDBaseModel, list[Post]):
     _refreshable = False
+    _set_loaded: bool = True
 
     def load(self, count: int | None = None, limit: int = 50, client: Client | None = None) -> '_BasePosts':
         left = count or limit # if None get [LIMIT] firstly
@@ -465,7 +466,7 @@ class _BasePosts(ITDBaseModel, list[Post]):
                 break
 
             print(f'fetched {len(posts)} left={left} (was {len(self)})')
-            self.extend([Post._from_dict(post, self.client) for post in posts])
+            self.extend([Post._from_dict(post, self._set_loaded, self.client) for post in posts])
         return self
 
     def __setattr__(self, name: str, value) -> None:
@@ -545,6 +546,7 @@ class LikedPosts(_BasePosts): # [] if forbidden
 class HashtagPosts(_BasePosts):
     hashtag: Hashtag
     cursor: UUID | None = None
+    _set_loaded = False
 
     def __init__(self, hashtag: Hashtag | str, client: Client | None = None) -> None:
         super().__init__(client)
