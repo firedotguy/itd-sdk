@@ -10,6 +10,8 @@ from itd.base import ITDBaseModel, refresh_wrapper
 from itd.enums import AccessType, ALL, All, Unset, Role, ReportReason, ReportTargetType
 from itd.exceptions import PinNotOwned
 from itd.pin import Pin
+from itd.models.post import Span
+from itd.poll import NewPoll
 from itd.report import Report
 from itd.routes.etc import get_who_to_follow
 from itd.routes.users import (
@@ -18,9 +20,10 @@ from itd.routes.users import (
 )
 from itd.routes.pins import get_pins, remove_pin
 from itd.routes.subscription import get_subscription, pay_subscription, get_payment_methods, toggle_subscription_auto_renewal
-from itd.utils import to_uuid
+from itd.utils import to_uuid, ATTACHMENTS
 if TYPE_CHECKING:
     from itd.client import Client
+    from itd.post import Post
 
 
 class ProfileUser(BaseModel):
@@ -206,7 +209,6 @@ class _UserBase(ITDBaseModel):
 
 
 
-
 class User(_UserBase):
     _validator = lambda _: _UserValidate
     _fields_from_data: set[str] = set()
@@ -271,6 +273,17 @@ class User(_UserBase):
     def unblock(self, client: Client | None = None) -> None:
         unblock(client or self.client, self._identifier)
         self.is_blocking = False
+
+    def post(
+        self,
+        content: str | None = None,
+        spans: list[Span] = [],
+        attachments: ATTACHMENTS = [],
+        poll: NewPoll | None = None,
+        client: Client | None = None
+    ) -> Post:
+        from itd.post import Post # stupid circular import
+        return Post.new(content, spans, self, attachments, poll, client or self.client)
 
     @property
     def following(self) -> list:

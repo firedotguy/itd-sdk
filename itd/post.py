@@ -233,7 +233,7 @@ class Post(_BasePost):
         cls,
         content: str | None = None,
         spans: list[Span] = [],
-        wall_recipient_id: UUID | str | None = None,
+        wall_recipient: UUID | str | User | None = None,
         attachments: ATTACHMENTS = [],
         poll: NewPoll | None = None,
         client: Client | None = None
@@ -243,7 +243,7 @@ class Post(_BasePost):
         Args:
             content (str | None, optional): Содержимое. Defaults to None.
             spans (list[Span], optional): Спаны. Defaults to [].
-            wall_recipient_id (UUID | str | None, optional): Получатель (для постов на чужой стене). Defaults to None.
+            wall_recipient (UUID | str | User | None, optional): Получатель (для постов на чужой стене). Defaults to None.
             attachments (ATTACHMENTS, optional): Вложения. Defaults to [].
             poll (NewPoll | None, optional): Опрос. Defaults to None.
             client (Client | None, optional): Клиент. Defaults to None.
@@ -254,13 +254,15 @@ class Post(_BasePost):
         instance = cls.__new__(cls)
         super(Post, instance).__init__(client)
 
-        if wall_recipient_id is not None:
-            wall_recipient_id = to_uuid(wall_recipient_id)
+        if isinstance(wall_recipient, User):
+            wall_recipient = wall_recipient.id
+        elif wall_recipient is not None:
+            wall_recipient = to_uuid(wall_recipient)
 
         post = create_post(
             instance._client,
             content, [span.model_dump(mode="json") for span in spans],
-            wall_recipient_id,
+            wall_recipient,
             format_attachments(attachments),
             poll
         ).json()
