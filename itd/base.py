@@ -153,11 +153,11 @@ def rate_limit(default_delay: float | None = None):
         def wrapper(client: Client, *args, **kwargs) -> Response | None:
             default = default_delay or client.default_delay
 
-            # if datetime.now() - timedelta(seconds=default) < client.last_actions.get(func.__name__, datetime(2013, 2, 16)):  # my birthday actually
-            #     delay = default - (datetime.now() - client.last_actions[func.__name__]).seconds
-            #     l.debug('anti rate limit on %s; wait %ss', func.__name__, delay)
-            #     sleep(delay)
-            # client.last_actions[func.__name__] = datetime.now()
+            if datetime.now() - timedelta(seconds=default) < client.last_actions.get(func.__name__, datetime(2013, 2, 16)):  # my birthday actually
+                delay = default - (datetime.now() - client.last_actions[func.__name__]).seconds
+                l.debug('anti rate limit on %s; wait %ss', func.__name__, delay)
+                sleep(delay)
+            client.last_actions[func.__name__] = datetime.now()
 
             while True:
                 try:
