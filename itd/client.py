@@ -34,6 +34,12 @@ class Config:
     load_on_getitem_count: int | All = 1
     force_load_lists: bool = False # load lists even if has_more is False
     debug_response: DebugResponseMode = DebugResponseMode.NO
+    timeout: float = 30
+    timeout_file: float = 120
+    url: str = 'xn--d1ah4a.com'
+    url_api: str | None = None
+    user_agent: str = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0' # my ua btw
+    solve_challenge: bool = True
     # parse_mode = None
 
     def __post_init__(self):
@@ -45,6 +51,9 @@ class Config:
             self._rate_limit_default = 0.2
         else:
             self._rate_limit_default = 0.4
+
+        self._url_api = self.url_api if self.url_api else f'https://{self.url}/api'
+        self.url = self.url.split('https://')[0].split('http://')[0]
 
 
 
@@ -68,7 +77,7 @@ class Client:
 
         if refresh_token:
             self.refresh_token = refresh_token
-            self.session.cookies.set('refresh_token', refresh_token, path='/', domain='xn--d1ah4a.com')
+            self.session.cookies.set('refresh_token', refresh_token, path='/', domain=self.config.url)
             if access_token is None:
                 self.refresh_auth()
 
@@ -86,7 +95,7 @@ class Client:
         """
         l.debug('%s %s params=%s', method.upper(), url, params)
         def _fetch():
-            return fetch(self.token, method, url, params, files, session=self.session)
+            return fetch(self, method, url, params, files)
 
         if not self.refresh_token:
             return _fetch()

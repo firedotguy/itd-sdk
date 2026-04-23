@@ -4,6 +4,7 @@ from _io import BufferedReader
 from time import time
 from typing import Any
 from urllib.parse import quote
+from typing import TYPE_CHECKING
 
 from requests import Response, Session
 from requests.exceptions import JSONDecodeError
@@ -11,12 +12,13 @@ from itd.exceptions import (
     InvalidToken, InvalidCookie, RateLimitExceeded, Unauthorized, AccountBanned, ProfileRequired
 )
 from itd.logger import get_logger
+if TYPE_CHECKING:
+    from itd.client import Client
 
 l = get_logger('request')
 
 
 # ai begin ---
-UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0'
 
 def _get_jhash(b: int) -> int:
     """Calculate DDoS-Guard challenge hash (JS get_jhash port)."""
@@ -29,7 +31,7 @@ def _get_jhash(b: int) -> int:
     return k
 
 
-def _solve_ddos_guard(session: Session, response: Response) -> bool:
+def _solve_ddos_guard(session: Session, response: Response, domain: str = 'xn--d1ah4a.com', user_agent: str = '') -> bool:
     """Solve DDoS-Guard JS challenge. Returns True if solved (duplicate request required)."""
     if '<html>' not in response.text[:500] or 'get_jhash' not in response.text:
         return False
@@ -45,8 +47,8 @@ def _solve_ddos_guard(session: Session, response: Response) -> bool:
     jhash = _get_jhash(code)
     l.info('solved jhash=%s', jhash)
 
-    session.cookies.set('__jhash_', str(jhash), domain='xn--d1ah4a.com', path='/')
-    session.cookies.set('__jua_', quote(UA, safe=''), domain='xn--d1ah4a.com', path='/')
+    session.cookies.set('__jhash_', str(jhash), domain=domain, path='/')
+    session.cookies.set('__jua_', quote(user_agent, safe=''), domain=domain, path='/')
 
     return True
 
@@ -84,38 +86,48 @@ def is_token_expired(access_token: str) -> bool:
     return time() - 1 >= payload['exp']
 
 
-def fetch(token: str | None, method: str, url: str, params: dict = {}, files: dict[str, tuple[str, BufferedReader | bytes]] = {}, *, session: Session) -> Response:
-    base = f'https://xn--d1ah4a.com/api/{url}'
+def fetch(client: 'Client', method: str, url: str, params: dict = {}, files: dict[str, tuple[str, BufferedReader | bytes]] = {}) -> Response:
     headers = {
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3",
-        'User-Agent': UA,
+        'User-Agent': client.config.user_agent,
     }
-    if token:
-        headers['Authorization'] = 'Bearer ' + token
+    if client.access_token:
+        headers['Authorization'] = 'Bearer ' + client.access_token
 
     # ai begin ---
     def _do_request():
         m = method.lower()
         if m == "get":
-            return session.get(base, timeout=20, params=params, headers=headers)
-        return session.request(m.upper(), base, timeout=120 if files else 20, json=params, headers=headers, files=files)
+            return client.session.get(
+                f'{client.config._url_api}/{url}',
+                timeout=client.config.timeout,
+                params=params,
+                headers=headers
+            )
+
+        return client.session.request(
+            m.upper(),
+            f'{client.config._url_api}/{url}',
+            timeout=client.config.timeout_file if files else client.config.timeout,
+            json=params,
+            headers=headers,
+            files=files
+        )
 
     res = _do_request()
-    for _ in range(3):
-        if not _solve_ddos_guard(session, res):
-            break
-        l.debug('ddos-guard cookies: %s', {c.name: c.value for c in session.cookies if c.name.startswith('__')})
-        res = _do_request()
-    else:
-        l.warning('ddos-guard challenge not solved')
+    if client.config.solve_challenge:
+        for _ in range(3):
+            if not _solve_ddos_guard(client.session, res, client.config.url, client.config.user_agent):
+                break
+            l.debug('ddos-guard cookies: %s', {c.name: c.value for c in client.session.cookies if c.name.startswith('__')})
+            res = _do_request()
+        else:
+            l.warning('ddos-guard challenge not solved')
     # --- ai end
 
     if res.status_code == 204:
         return res
-
-    if not res.ok:
-        l.debug(res.text)
 
     if res.text == 'UNAUTHORIZED':
         raise InvalidToken()
@@ -130,8 +142,9 @@ def fetch(token: str | None, method: str, url: str, params: dict = {}, files: di
             raise AccountBanned()
         if res.json().get('error', {}).get('code') == 'PROFILE_REQUIRED':
             raise ProfileRequired()
-        if res.json().get('error', {}).get('code') in ('SESSION_NOT_FOUND', 'REFRESH_TOKEN_MISSING',
-                'SESSION_REVOKED', 'SESSION_EXPIRED'):
+        if res.json().get('error', {}).get('code') in (
+            'SESSION_NOT_FOUND', 'REFRESH_TOKEN_MISSING', 'SESSION_REVOKED', 'SESSION_EXPIRED'
+        ):
             raise InvalidCookie(res.json()['error']['code'])
     except (JSONDecodeError, AttributeError):
         l.debug(res.text)
