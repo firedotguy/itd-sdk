@@ -201,7 +201,7 @@ class ITDList(ITDBaseModel, list):
     # ai begin ---
     def load(self, count: int | All | None = None, limit: int | None = None, client: Client | None = None):
         if not (self.has_more or self.client.config.force_load_lists):
-            return []
+            return self
 
         limit = limit or self._limit
         if isinstance(count, int) and count < limit:

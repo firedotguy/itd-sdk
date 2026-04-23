@@ -2,12 +2,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from uuid import UUID
 from datetime import datetime
-from math import ceil
 
 from pydantic import Field, BaseModel, field_validator
 
-from itd.base import ITDBaseModel, refresh_wrapper
-from itd.enums import AccessType, ALL, All, Unset, Role, ReportReason, ReportTargetType
+from itd.base import ITDBaseModel, refresh_wrapper, ITDList
+from itd.enums import AccessType, Unset, Role, ReportReason, ReportTargetType
 from itd.exceptions import PinNotOwned
 from itd.pin import Pin
 from itd.poll import NewPoll
@@ -496,77 +495,52 @@ class _MeValidate(BaseModel, Me):
 
 
 
-class Followers(ITDBaseModel, list[User]):
-    _refreshable = False
-
+class Followers(ITDList, list[User]):
+    _load_with_parent = False
     _user_id: UUID
-    limit: int = 20 # blocked can load 100, so it its var (not const)
-    has_more: bool = True
-    total: int = 0
+    cursor: int = 1
 
 
-    def _fetch(self, client: Client, page: int) -> dict:
-        return get_followers(client, self._user_id, page).json()['data']
+    def _fetch(self, client: Client, limit: int) -> dict:
+        return get_followers(client, self._user_id, self.cursor).json()['data']
 
-    def load(self, count: int | All = limit, client: Client | None = None) -> 'Followers':
-        if isinstance(count, All):
-            ncount = None
-        else:
-            ncount = count
+    @staticmethod
+    def _get_has_more(data: dict) -> bool:
+        return data['pagination']['hasMore']
 
-        left = ncount or self.limit # if None get [20] firstly
-        page = ceil(len(self) / self.limit) + 1
+    @staticmethod
+    def _get_total(data: dict):
+        return data['pagination']['total']
 
-        while left > 0: # can be !=, but what if something went wrong
-            data = self._fetch(
-                client or self.client,
-                page,
-            )
-            page += 1
-            self.has_more = data['pagination']['hasMore']
-            self.total = data['pagination']['total']
+    @staticmethod
+    def _get_objects(data: dict) -> list[dict]:
+        return data['users']
 
-            if ncount is None:
-                left = self.total - len(self)
+    @staticmethod
+    def _get_cursor(data: dict):
+        return data['pagination']['page'] + 1
 
-            users = data['users']
-            left -= len(users)
-            if not users or not self.has_more:
-                break
-
-            print(f'fetched {len(users)} left={left} (was {len(self)})')
-            self.extend([User._from_dict(user, False, self.client) for user in users])
-        return self
-
-    def load_all(self, client: Client | None = None) -> 'Followers':
-        return self.load(ALL, client)
-
-    def refresh(self, count: int | None = None, client: Client | None = None) -> 'Followers': # "None" count means already loaded count
-        count = count or len(self)
-        self.clear()
-        return self.load(count, client)
+    def _extend(self, objects: list, client: Client):
+        self.extend([User._from_dict(user, False, client) for user in objects])
 
     def __setattr__(self, name: str, value) -> None:
         if name == '_client':
-            for user in self:
+            for user in self.copy():
                 user._client = value
         super().__setattr__(name, value)
 
-    @property
-    def all(self) -> "Followers": # me.followers.all
-        return self.load_all()
 
 
 class Following(Followers):
-    def _fetch(self, client: Client, page: int) -> dict:
-        return get_following(client, self._user_id, page).json()['data']
+    def _fetch(self, client: Client, limit: int) -> dict:
+        return get_following(client, self._user_id, self.cursor).json()['data']
 
 
 class Blocked(Followers):
     limit = 100
 
-    def _fetch(self, client: Client, page: int) -> dict:
-        return get_blocked(client, page).json()['data']
+    def _fetch(self, client: Client, limit: int) -> dict:
+        return get_blocked(client, self.cursor, limit).json()['data']
 
 
 

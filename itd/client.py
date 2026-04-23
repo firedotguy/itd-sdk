@@ -52,13 +52,12 @@ class Config:
 class Client:
     access_token: str | None = None
     refresh_token: str | None = None
-    last_actions: dict[str, datetime] = {}
-    default_delay: float = 0.2
     _user = None
 
     def __init__(self, refresh_token: str | None = None, access_token: str | None = None, config: Config = Config()):
         l.info('init client refresh=%s access=%s', refresh_token is not None, access_token is not None)
         self.config = config
+        self.last_actions: dict[str, datetime] = {}
 
         self.session = Session()
         adapter = HTTPAdapter(pool_connections=1, pool_maxsize=10, pool_block=False) # idk what is this, (claude added) just for better stability
