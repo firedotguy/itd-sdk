@@ -119,7 +119,7 @@ class Client:
         if not self.refresh_token:
             raise NoCookie()
 
-        res = refresh_token(self.session)
+        res = refresh_token(self)
         res.raise_for_status()
 
         self.access_token = res.json()['accessToken']
