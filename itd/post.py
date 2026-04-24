@@ -316,12 +316,12 @@ class Post(_BasePost):
     def pin(self, client: Client | None = None) -> None:
         super().pin(client)
         self.is_pinned_post = True
-        (client or self.client).user.pinned_post_id = self.id # TODO
+        (client or self.client).user.pinned_post_id = self.id # TODO: add user.pinned_post
 
     def unpin(self, client: Client | None = None) -> None:
         super().unpin(client)
         self.is_pinned_post = False
-        (client or self.client).user.pinned_post_id = None # TODO
+        (client or self.client).user.pinned_post_id = None
 
     def edit(self, content: str, spans: list[Span] = [], client: Client | None = None) -> datetime:
         updated_at = super().edit(content, spans, client)

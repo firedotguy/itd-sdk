@@ -14,6 +14,8 @@ from itd.enums import RateLimitMode, All, DebugResponseMode
 from itd.user import Me, User
 from itd.api.auth import refresh_token, change_password, logout
 from itd.api.search import search
+from itd.api.users import get_follow_status
+from itd.utils import to_uuid
 from itd.logger import get_logger
 
 
@@ -184,3 +186,21 @@ class Client:
     def search(self, query: str, hashtags_limit: int = 20, users_limit: int = 20) -> tuple[list[User], list[Hashtag]]:
         res = search(self, query, users_limit, hashtags_limit).json()['data']
         return [User._from_dict(user, False, self) for user in res['users']], [Hashtag._from_dict(hashtag, self) for hashtag in res['hashtags']]
+
+    def get_follow_status(self, users: list[User | UUID | str] | User | UUID | str) -> dict[UUID, bool] | bool:
+        user_ids: list[UUID] = []
+        if isinstance(users, list):
+            for user in users:
+                if isinstance(user, User):
+                    user_ids.append(user.id)
+                else:
+                    user_ids.append(to_uuid(user))
+        elif isinstance(users, User):
+            user_ids = [users.id]
+        else:
+            user_ids = [to_uuid(users)]
+
+        res = {UUID(k): v for k, v in get_follow_status(self, user_ids).json()['data'].items()}
+        if not isinstance(users, list):
+            return list(res.values())[0]
+        return res
