@@ -7,7 +7,7 @@ from requests import Session
 from requests.adapters import HTTPAdapter
 
 from itd._default import _default_client, set_default_client
-from itd.exceptions import NoCookie, Unauthorized
+from itd.exceptions import Unauthorized, InsufficientAuthLevelError
 from itd.hashtag import Hashtag
 from itd.request import fetch, decode_jwt_payload
 from itd.enums import RateLimitMode, All, DebugResponseMode
@@ -111,15 +111,12 @@ class Client:
     def refresh_auth(self) -> str:
         """Обновить access token
 
-        Raises:
-            NoCookie: Нет cookie
-
         Returns:
             str: Токен
         """
         l.debug('refresh token')
         if not self.refresh_token:
-            raise NoCookie()
+            raise InsufficientAuthLevelError()
 
         res = refresh_token(self)
         res.raise_for_status()
@@ -178,7 +175,7 @@ class Client:
 
         """
         if not self.refresh_token:
-            raise NoCookie()
+            raise InsufficientAuthLevelError()
 
         change_password(self, old, new)
 

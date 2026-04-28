@@ -23,7 +23,9 @@ from itd.api.hashtags import get_posts_by_hashtag
 
 
 
-class _BasePost(ITDBaseModel):
+class Post(ITDBaseModel):
+    _validator = lambda _: _PostValidate
+
     id: UUID
     author: User
     created_at: datetime = Field(alias='createdAt')
@@ -31,6 +33,8 @@ class _BasePost(ITDBaseModel):
     content: str
     spans: list[Span] = []
     attachments: list[PostAttach]
+    poll: Poll | None = None
+
     comments: Comments = Field(default_factory=lambda: Comments())
 
     likes_count: int = Field(0, alias='likesCount')
@@ -38,17 +42,6 @@ class _BasePost(ITDBaseModel):
     reposts_count: int = Field(0, alias='repostsCount')
     views_count: int = Field(0, alias='viewsCount')
 
-
-    
-
-
-
-class Post(_BasePost):
-    _validator = lambda _: _PostValidate
-
-    id: UUID
-
-    poll: Poll | None = None
     edited_at: datetime | None = Field(None, alias='editedAt')
 
     is_liked: bool = Field(False, alias='isLiked')
@@ -157,7 +150,7 @@ class Post(_BasePost):
         return self.likes_count
 
     def __eq__(self, other) -> bool:
-        if isinstance(other, _BasePost):
+        if isinstance(other, Post):
             return self.id == other.id
         return False
 

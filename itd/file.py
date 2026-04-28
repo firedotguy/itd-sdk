@@ -32,10 +32,7 @@ class File(ITDBaseModel):
     @classmethod
     def from_path(cls, path: str):
         with open(path, 'rb') as fl:
-            return cls(
-                basename(path),
-                fl
-            )
+            return cls(basename(path), fl)
 
     @classmethod
     def from_bytes(cls, data: bytes | BufferedReader):

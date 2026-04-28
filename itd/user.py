@@ -46,6 +46,9 @@ class Profile(ITDBaseModel):
     authenticated: bool = True
     user: ProfileUser | None
     banned: bool = False
+    profile_required: bool = Field(False, alias='profileRequired')
+    user_id: UUID | None = Field(None, alias='userId')
+    roles: list[Role] | None = None
 
     @refresh_wrapper
     def refresh(self, client: Client | None = None):
