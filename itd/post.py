@@ -77,9 +77,9 @@ class Post(ITDBaseModel):
         cls,
         content: str | None = None,
         spans: list[Span] = [],
-        wall_recipient: UUID | str | User | None = None,
         attachments: ATTACHMENTS = [],
         poll: NewPoll | None = None,
+        wall_recipient: UUID | str | User | None = None,
         client: Client | None = None
     ) -> 'Post':
         """Создать новый пост
