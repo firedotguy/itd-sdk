@@ -66,7 +66,7 @@ class Comment(ITDBaseModel):
         return Comment(
             add_reply_comment(
                 client or self._client,
-                self.id,
+                self._comment_id or self.id,
                 user_id or self.author.id,
                 content,
                 format_attachments(attachments)
