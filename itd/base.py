@@ -216,12 +216,20 @@ def refresh_wrapper(func):
     return wrapper
 
 
+def _filter_bytes(args: tuple):
+    filtered = []
+    for arg in args:
+        if isinstance(arg, bytes):
+            filtered.append('_bytecode_')
+        else:
+            filtered.append(arg)
+    return filtered
 
 def catch_errors(*exceptions: ITDException):
     def decorator(func):
         @wraps(func)
         def wrapper(client: Client, *args, **kwargs) -> Response | None:
-            l.info('exec %s %s %s', func.__name__, str(args)[:1000], str(kwargs)[:1000])
+            l.info('exec %s %s %s', func.__name__, _filter_bytes(args), kwargs)
             res: Response = func(client, *args, **kwargs)
 
             assert isinstance(res, Response)
