@@ -249,7 +249,7 @@ def catch_errors(*exceptions: ITDException):
                 json = {}
                 l.warning('failed to parse json: %s', res.text[:1000])
 
-            for exception in exceptions + DEFAULT_ERRORS:
+            for exception in DEFAULT_ERRORS + exceptions:
                 if (
                     getattr(exception, '_reply_comment_user_not_found', False) and res.status_code == 500 and 'Failed query' in res.text or
                     getattr(exception, '_delete_comment_not_found', False) and res.status_code == 500 and res.text == 'Комментарий не найден' or
@@ -268,7 +268,7 @@ def catch_errors(*exceptions: ITDException):
                 ):
                     if isinstance(exception, ValidationError) and json.get('error', {}).get('code') == exception.code:
                         exception.text = json['error']['message']
-                    if isinstance(exception, RateLimitExceeded) and json.get('error', {}).get('code') == exception.code:
+                    if isinstance(exception, RateLimitExceeded) and isinstance(json.get('error'), dict) and json['error'].get('code') == exception.code:
                         exception.retry_after = json['error'].get('retryAfter', 0)
 
                     raise exception

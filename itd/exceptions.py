@@ -211,4 +211,4 @@ class ModerationFailed(ITDException):
     text = 'Unable to moderate image'
 
 
-DEFAULT_ERRORS = (InvalidAccessToken(), RateLimitExceeded(), Unauthorized(), AccessTokenExpired(), AccountBanned())
+DEFAULT_ERRORS = (RateLimitExceeded(), InvalidAccessToken(), Unauthorized(), AccessTokenExpired(), AccountBanned())
