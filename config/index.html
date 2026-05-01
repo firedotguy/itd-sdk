@@ -11,7 +11,7 @@
         <link rel="canonical" href="https://itdsdk.qzz.io/docs/config/">
       
       
-        <link rel="prev" href="../launch/">
+        <link rel="prev" href="../concept/">
       
       
         <link rel="next" href="../methods/auth/">
@@ -245,6 +245,33 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../concept/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Концепция
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -327,23 +354,6 @@
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="rate_limit RateLimitMode">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#rate_limit_mode" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Псевдокод: как работает rate_limit_mode внутри
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -540,10 +550,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   
@@ -561,8 +571,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -622,10 +632,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
             
   
   
@@ -643,8 +653,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1184,23 +1194,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="rate_limit RateLimitMode">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#rate_limit_mode" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Псевдокод: как работает rate_limit_mode внутри
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
         
           <li class="md-nav__item">
@@ -1403,47 +1396,33 @@
 </code></pre></div>
 <h2 id="_2">Параметры</h2>
 <h4 id="rate_limit-ratelimitmode">rate_limit <span class="mdx-badge"><span class="mdx-badge__icon"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15 5h3l-1.5 2zM5 2h14a2 2 0 0 1 2 2v16c0 1.11-.89 2-2 2H5a2 2 0 0 1-2-2V4c0-1.1.9-2 2-2m0 2v4h14V4zm0 16h14V10H5zm2-8h10v2H7zm0 4h10v2H7z"/></svg></span></span><span class="mdx-badge__text">RateLimitMode</span></span></h4>
-<p>Устанавливает дефолтные значения задержек.<br />
-Обычные запросы - запросы без конкретно утсановленных задержек (например получение постов, подписчиков, удаление поста и тд). У каждого менее обычного запроса (подписка, лайк, комментарий и тд) стоят уже свои задержки (например, при создании поста задержка 5-30 сек взависимости от режима).</p>
+<p>Устанавливает дефолтные значения задержек.</p>
 <ul>
 <li><code>RateLmitMode.NO</code>: 0 сек - для простых скриптов</li>
 <li><code>RateLimitMode.MIN</code>: Небольшие задержки (0 сек для обычных запросов) - для кастомных клиентов или маленьких скриптов</li>
 <li><code>RateLimitMode.MID</code>: Средние задержки (0.2 сек для обычных запросов) - для обычных скриптов</li>
 <li><code>RateLimitMode.MAX</code>: Большие задержки (0.4 сек для обычных запросов) - для больших ботов, парсеров</li>
 </ul>
-<h5 id="rate_limit_mode">Псевдокод: как работает rate_limit_mode внутри</h5>
-<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="n">функция</span> <span class="n">есть</span> <span class="n">в</span> <span class="n">предустановленных</span> <span class="n">значениях</span><span class="p">:</span> <span class="c1"># (1)</span>
-    <span class="n">задержка</span> <span class="o">=</span> <span class="n">предустановленное</span> <span class="n">значение</span>
-<span class="k">elif</span> <span class="n">rate_limit_mode</span> <span class="o">==</span> <span class="n">RateLimitMode</span><span class="o">.</span><span class="n">NO</span><span class="p">:</span>
-    <span class="n">задержка</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="k">elif</span> <span class="nb">any</span><span class="p">((</span><span class="n">кастомная_задержка_min</span><span class="p">,</span> <span class="n">кастомная_задержка_mid</span><span class="p">,</span> <span class="n">кастомная_задержка_max</span><span class="p">)):</span>
-    <span class="n">задержка</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;задержка_</span><span class="si">{</span><span class="nb">min</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">mid</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="nb">max</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="n">задержка</span> <span class="o">=</span> <span class="n">задержка_для_обычных_запросов</span> <span class="c1"># (2)</span>
-</code></pre></div>
-<ol>
-<li>(см. <a href="#rate_limit_actions-dictstr-float">rate_limit_actions</a>)</li>
-<li>(см. <a href="#rate_limit_default-float">rate_limit_default</a>)</li>
-</ol>
 <!-- Также планируется режим `SMART`, который будет выставлять динамическую задержку (например при первых трех комментариях не делать задержку). -->
-
+<p>По умолчанию <code>RateLimitMode.MID</code>.</p>
 <h4 id="rate_limit_default-float">rate_limit_default <span class="mdx-badge"><span class="mdx-badge__icon"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M9 4.75A.75.75 0 0 1 9.75 4h4a.75.75 0 0 1 .53 1.28l-1.89 1.892c.312.076.604.18.867.319.742.391 1.244 1.063 1.244 2.005 0 .653-.231 1.208-.629 1.627-.386.408-.894.653-1.408.777-1.01.243-2.225.063-3.124-.527a.751.751 0 0 1 .822-1.254c.534.35 1.32.474 1.951.322.306-.073.53-.201.67-.349.129-.136.218-.32.218-.596 0-.308-.123-.509-.444-.678-.373-.197-.98-.318-1.806-.318a.75.75 0 0 1-.53-1.28l1.72-1.72H9.75A.75.75 0 0 1 9 4.75m-3.587 5.763c-.35-.05-.77.113-.983.572a.75.75 0 1 1-1.36-.632c.508-1.094 1.589-1.565 2.558-1.425 1 .145 1.872.945 1.872 2.222 0 1.433-1.088 2.192-1.79 2.681-.308.216-.571.397-.772.573H7a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75c0-.69.3-1.211.67-1.61.348-.372.8-.676 1.15-.92.8-.56 1.18-.904 1.18-1.474 0-.473-.267-.69-.587-.737M5.604.089A.75.75 0 0 1 6 .75v4.77h.711a.75.75 0 0 1 0 1.5H3.759a.75.75 0 0 1 0-1.5H4.5V2.15l-.334.223a.75.75 0 0 1-.832-1.248l1.5-1a.75.75 0 0 1 .77-.037Z"/></svg></span></span><span class="mdx-badge__text">float</span></span></h4>
-<p>Задержка для обычных запросов (overrides rate_limit_mode).</p>
+<p>Задержка для обычных запросов (overrides rate_limit_mode). Значение по умолчанию зависит от <a href="#rate_limit-ratelimitmode">rate_limit</a>.</p>
 <h4 id="rate_limit_actions-dictstr-float">rate_limit_actions <span class="mdx-badge"><span class="mdx-badge__icon"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 3a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2H3v2h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h2v-2H8v-5a2 2 0 0 0-2-2 2 2 0 0 0 2-2V5h2V3m6 0a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1v2h-1a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2v-2h2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5h-2V3z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 6v2H3V6zM3 18h9v-2H3zm0-5h18v-2H3z"/></svg></span>: <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M9 4.75A.75.75 0 0 1 9.75 4h4a.75.75 0 0 1 .53 1.28l-1.89 1.892c.312.076.604.18.867.319.742.391 1.244 1.063 1.244 2.005 0 .653-.231 1.208-.629 1.627-.386.408-.894.653-1.408.777-1.01.243-2.225.063-3.124-.527a.751.751 0 0 1 .822-1.254c.534.35 1.32.474 1.951.322.306-.073.53-.201.67-.349.129-.136.218-.32.218-.596 0-.308-.123-.509-.444-.678-.373-.197-.98-.318-1.806-.318a.75.75 0 0 1-.53-1.28l1.72-1.72H9.75A.75.75 0 0 1 9 4.75m-3.587 5.763c-.35-.05-.77.113-.983.572a.75.75 0 1 1-1.36-.632c.508-1.094 1.589-1.565 2.558-1.425 1 .145 1.872.945 1.872 2.222 0 1.433-1.088 2.192-1.79 2.681-.308.216-.571.397-.772.573H7a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75c0-.69.3-1.211.67-1.61.348-.372.8-.676 1.15-.92.8-.56 1.18-.904 1.18-1.474 0-.473-.267-.69-.587-.737M5.604.089A.75.75 0 0 1 6 .75v4.77h.711a.75.75 0 0 1 0 1.5H3.759a.75.75 0 0 1 0-1.5H4.5V2.15l-.334.223a.75.75 0 0 1-.832-1.248l1.5-1a.75.75 0 0 1 .77-.037Z"/></svg></span></span><span class="mdx-badge__text">dict[str, float]</span></span></h4>
 <p>Кастомная задержка для каждого вида запроса (например <code>get_user</code>). Названия фукнций можно посмотреть в <code>itd.api</code>. Можно использовать, если ваш скрипт повторяет одно и тоже действие (например, постоянно комментирует).</p>
 <div class="admonition example">
 <p class="admonition-title">Example</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="s1">&#39;get_me&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;get_followers: 6, &#39;</span><span class="n">add_comment</span><span class="s1">&#39;: 5.4}</span>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="s1">&#39;get_me&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;get_followers&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;add_comment&#39;</span><span class="p">:</span> <span class="mf">15.4</span><span class="p">}</span>
 </code></pre></div>
 </div>
 <h4 id="is_default-bool">is_default <span class="mdx-badge"><span class="mdx-badge__icon"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg></span></span><span class="mdx-badge__text">bool</span></span></h4>
 <p>Сделать ли клиент дефолтным по умолчанию. По умолчанию дефолтным становится первый инициализированный клиент.</p>
 <h4 id="userposts_add_pinned_post-bool">userposts_add_pinned_post <span class="mdx-badge"><span class="mdx-badge__icon"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg></span></span><span class="mdx-badge__text">bool</span></span></h4>
-<p>Добавлять ли закрепленный пост при получении постов пользователя (<code>UserPosts</code>). Для этого потребуется отдельный запрос.</p>
+<p>Добавлять ли закрепленный пост при получении постов пользователя (<code>UserPosts</code>). Для этого потребуется отдельный запрос. По умолчанию <code>True</code>.</p>
 <h4 id="auto_load-bool">auto_load <span class="mdx-badge"><span class="mdx-badge__icon"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg></span></span><span class="mdx-badge__text">bool</span></span></h4>
-<p>Нужно ли автоматически загружать данные при попытке получение (перехват в <code>__getattribute__</code>). Если выключено, то для получения данных придется перед получением писать <code>obj.refresh()</code>.</p>
+<p>Нужно ли автоматически загружать данные при попытке получение (перехват в <code>__getattribute__</code>). Если выключено, то для получения данных придется перед получением писать <code>obj.refresh()</code>.<br />
+По умолчанию <code>True</code>.</p>
 <h4 id="load_on_getitem-bool">load_on_getitem <span class="mdx-badge"><span class="mdx-badge__icon"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg></span></span><span class="mdx-badge__text">bool</span></span></h4>
-<p>Нужно ли подгружать данные при попытке получить еще не загруженный элемент списка (например <code>Posts()[10]</code>). Может выдать <code>AttributeError</code>, если даже после загрузки всех объектов количество меньше желаемого индекса, или если известно общее количество объектов и индекс будет больше него.</p>
+<p>Нужно ли подгружать данные при попытке получить еще не загруженный элемент списка (например <code>Posts()[10]</code>). Может выдать <code>AttributeError</code>, если даже после загрузки всех объектов количество меньше желаемого индекса, или если известно общее количество объектов и индекс будет больше него. По умолчанию <code>True</code>.</p>
 <h4 id="load_on_getitem_count-int-all">load_on_getitem_count <span class="mdx-badge"><span class="mdx-badge__icon"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M9 4.75A.75.75 0 0 1 9.75 4h4a.75.75 0 0 1 .53 1.28l-1.89 1.892c.312.076.604.18.867.319.742.391 1.244 1.063 1.244 2.005 0 .653-.231 1.208-.629 1.627-.386.408-.894.653-1.408.777-1.01.243-2.225.063-3.124-.527a.751.751 0 0 1 .822-1.254c.534.35 1.32.474 1.951.322.306-.073.53-.201.67-.349.129-.136.218-.32.218-.596 0-.308-.123-.509-.444-.678-.373-.197-.98-.318-1.806-.318a.75.75 0 0 1-.53-1.28l1.72-1.72H9.75A.75.75 0 0 1 9 4.75m-3.587 5.763c-.35-.05-.77.113-.983.572a.75.75 0 1 1-1.36-.632c.508-1.094 1.589-1.565 2.558-1.425 1 .145 1.872.945 1.872 2.222 0 1.433-1.088 2.192-1.79 2.681-.308.216-.571.397-.772.573H7a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75c0-.69.3-1.211.67-1.61.348-.372.8-.676 1.15-.92.8-.56 1.18-.904 1.18-1.474 0-.473-.267-.69-.587-.737M5.604.089A.75.75 0 0 1 6 .75v4.77h.711a.75.75 0 0 1 0 1.5H3.759a.75.75 0 0 1 0-1.5H4.5V2.15l-.334.223a.75.75 0 0 1-.832-1.248l1.5-1a.75.75 0 0 1 .77-.037Z"/></svg></span></span><span class="mdx-badge__text">int | All</span></span></h4>
 <p>Количество доп. загружаемых объектов при попытке получить еще не загруженный элемент списка. По умолчанию 1. <code>All</code> - загрузить все.</p>
 <div class="admonition example">
@@ -1460,28 +1439,34 @@
 <span class="n">posts</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
 <span class="nb">len</span><span class="p">(</span><span class="n">posts</span><span class="p">)</span> <span class="c1"># 50</span>
 
+<span class="n">posts</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 <span class="n">config</span><span class="o">.</span><span class="n">load_on_getitem_count</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">posts</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span> <span class="c1"># AttributeError</span>
 </code></pre></div>
 </div>
 <h4 id="force_load_lists-bool">force_load_lists <span class="mdx-badge"><span class="mdx-badge__icon"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg></span></span><span class="mdx-badge__text">bool</span></span></h4>
-<p>Загружать список, даже если <code>has_more = False</code>. Может уйти в бесконечный цикл при итерации.</p>
+<p>Загружать список, даже если <code>has_more = False</code>. Может уйти в бесконечный цикл при итерации. По умолчанию <code>False</code>.</p>
 <h4 id="debug_response-debugresponsemode">debug_response <span class="mdx-badge"><span class="mdx-badge__icon"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15 5h3l-1.5 2zM5 2h14a2 2 0 0 1 2 2v16c0 1.11-.89 2-2 2H5a2 2 0 0 1-2-2V4c0-1.1.9-2 2-2m0 2v4h14V4zm0 16h14V10H5zm2-8h10v2H7zm0 4h10v2H7z"/></svg></span></span><span class="mdx-badge__text">DebugResponseMode</span></span></h4>
 <p>Режим показа сырых данных ответа API (response). Для работы должен быть установлен логгер с режимом <code>DEBUG</code>.
  - <code>DebugResponseMode.NO</code>: Не показывать ответ.
  - <code>DebugResponseMode.BEFORE</code>: Показывать ответ до обработки (сырой).
  - <code>DebugResponseMode.AFTER</code>: Показывать ответ после обработки (если при обработке возникла ошибка, ответ не выведется).
  - <code>DebugResponseMode.KEYS</code>: Показывать только ключи ответа (после обработки).</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Может раскрыть ваши ключи (при <code>refresh_auth</code> в терминале будет виден <code>access_token</code>)</p>
+</div>
+<p>По умолчанию <code>DebugResponseMode.NO</code>.</p>
 <h4 id="timeout-float">timeout <span class="mdx-badge"><span class="mdx-badge__icon"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M9 4.75A.75.75 0 0 1 9.75 4h4a.75.75 0 0 1 .53 1.28l-1.89 1.892c.312.076.604.18.867.319.742.391 1.244 1.063 1.244 2.005 0 .653-.231 1.208-.629 1.627-.386.408-.894.653-1.408.777-1.01.243-2.225.063-3.124-.527a.751.751 0 0 1 .822-1.254c.534.35 1.32.474 1.951.322.306-.073.53-.201.67-.349.129-.136.218-.32.218-.596 0-.308-.123-.509-.444-.678-.373-.197-.98-.318-1.806-.318a.75.75 0 0 1-.53-1.28l1.72-1.72H9.75A.75.75 0 0 1 9 4.75m-3.587 5.763c-.35-.05-.77.113-.983.572a.75.75 0 1 1-1.36-.632c.508-1.094 1.589-1.565 2.558-1.425 1 .145 1.872.945 1.872 2.222 0 1.433-1.088 2.192-1.79 2.681-.308.216-.571.397-.772.573H7a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75c0-.69.3-1.211.67-1.61.348-.372.8-.676 1.15-.92.8-.56 1.18-.904 1.18-1.474 0-.473-.267-.69-.587-.737M5.604.089A.75.75 0 0 1 6 .75v4.77h.711a.75.75 0 0 1 0 1.5H3.759a.75.75 0 0 1 0-1.5H4.5V2.15l-.334.223a.75.75 0 0 1-.832-1.248l1.5-1a.75.75 0 0 1 .77-.037Z"/></svg></span></span><span class="mdx-badge__text">float</span></span></h4>
-<p>Таймаут обычного запроса.</p>
+<p>Таймаут обычного запроса. По умолчанию <code>30</code>.</p>
 <h4 id="timeout_file-float">timeout_file <span class="mdx-badge"><span class="mdx-badge__icon"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M9 4.75A.75.75 0 0 1 9.75 4h4a.75.75 0 0 1 .53 1.28l-1.89 1.892c.312.076.604.18.867.319.742.391 1.244 1.063 1.244 2.005 0 .653-.231 1.208-.629 1.627-.386.408-.894.653-1.408.777-1.01.243-2.225.063-3.124-.527a.751.751 0 0 1 .822-1.254c.534.35 1.32.474 1.951.322.306-.073.53-.201.67-.349.129-.136.218-.32.218-.596 0-.308-.123-.509-.444-.678-.373-.197-.98-.318-1.806-.318a.75.75 0 0 1-.53-1.28l1.72-1.72H9.75A.75.75 0 0 1 9 4.75m-3.587 5.763c-.35-.05-.77.113-.983.572a.75.75 0 1 1-1.36-.632c.508-1.094 1.589-1.565 2.558-1.425 1 .145 1.872.945 1.872 2.222 0 1.433-1.088 2.192-1.79 2.681-.308.216-.571.397-.772.573H7a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75c0-.69.3-1.211.67-1.61.348-.372.8-.676 1.15-.92.8-.56 1.18-.904 1.18-1.474 0-.473-.267-.69-.587-.737M5.604.089A.75.75 0 0 1 6 .75v4.77h.711a.75.75 0 0 1 0 1.5H3.759a.75.75 0 0 1 0-1.5H4.5V2.15l-.334.223a.75.75 0 0 1-.832-1.248l1.5-1a.75.75 0 0 1 .77-.037Z"/></svg></span></span><span class="mdx-badge__text">float</span></span></h4>
-<p>Таймаут при загрузке файла.</p>
+<p>Таймаут при загрузке файла. По умолчанию <code>120</code>.</p>
 <h4 id="url-str">url <span class="mdx-badge"><span class="mdx-badge__icon"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 6v2H3V6zM3 18h9v-2H3zm0-5h18v-2H3z"/></svg></span></span><span class="mdx-badge__text">str</span></span></h4>
 <p>Базовый URL ИТД (<code>xn--d1ah4a.com</code>).</p>
 <h4 id="url_api-str">url_api <span class="mdx-badge"><span class="mdx-badge__icon"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 6v2H3V6zM3 18h9v-2H3zm0-5h18v-2H3z"/></svg></span></span><span class="mdx-badge__text">str</span></span></h4>
 <p>URL к API ИТД (<code>https://xn--d1ah4a.com/api</code>). Если не указан, берется из <a href="#url-str">url</a>.</p>
 <h4 id="user_agent-str">user_agent <span class="mdx-badge"><span class="mdx-badge__icon"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 6v2H3V6zM3 18h9v-2H3zm0-5h18v-2H3z"/></svg></span></span><span class="mdx-badge__text">str</span></span></h4>
-<p>User-Agent, под которым обращатся к API ИТД. Если вы делаете свой клиент, можете поставить агент как его имя.</p>
+<p>User-Agent, под которым обращатся к API ИТД. Если вы делаете свой клиент, можете поставить агент как его имя. По умолчанию стоит дефолтный файрфоксовский user-agent.</p>
 <h4 id="solve_challenge-bool">solve_challenge <span class="mdx-badge"><span class="mdx-badge__icon"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg></span></span><span class="mdx-badge__text">bool</span></span></h4>
 <p>Нужно ли проходить JS-challenge (защита от скриптов). Иногда включается при запросах к API. Если выключена, скрипт может упасть с ошибкой <code>fail to parse json</code>.</p>
 
@@ -1513,7 +1498,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../launch/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Запуск">
+          <a href="../concept/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Концепция">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1523,7 +1508,7 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Запуск
+                Концепция
               </div>
             </div>
           </a>

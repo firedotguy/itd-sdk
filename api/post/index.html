@@ -248,6 +248,33 @@
   
   
     <li class="md-nav__item">
+      <a href="../../concept/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Концепция
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../config/" class="md-nav__link">
         
   
@@ -283,10 +310,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   
@@ -304,8 +331,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -367,10 +394,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
             
   
   
@@ -388,8 +415,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_5">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -3468,7 +3495,7 @@
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><span title="itd.post._BasePost">_BasePost</span></code></p>
+              Bases: <code><span title="itd.base.ITDBaseModel">ITDBaseModel</span></code></p>
 
 
 
@@ -4306,7 +4333,7 @@
 
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">new</span><span class="p">(</span><span class="n">content</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">spans</span><span class="p">:</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            Span (itd.span.Span)" href="../span/#itd.span.Span">Span</a></span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span> <span class="n">wall_recipient</span><span class="p">:</span> <span class="n"><span title="uuid.UUID">UUID</span></span> <span class="o">|</span> <span class="n"><span title="str">str</span></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            User (itd.user.User)" href="../user/#itd.user.User">User</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">attachments</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            ATTACHMENTS (itd.utils.ATTACHMENTS)" href="../utils/#itd.utils.ATTACHMENTS">ATTACHMENTS</a></span> <span class="o">=</span> <span class="p">[],</span> <span class="n">poll</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            NewPoll (itd.poll.NewPoll)" href="../poll/#itd.poll.NewPoll">NewPoll</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            Post (itd.post.Post)" href="#itd.post.Post">Post</a></span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">new</span><span class="p">(</span><span class="n">content</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">spans</span><span class="p">:</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            Span (itd.span.Span)" href="../span/#itd.span.Span">Span</a></span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span> <span class="n">attachments</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            ATTACHMENTS (itd.utils.ATTACHMENTS)" href="../utils/#itd.utils.ATTACHMENTS">ATTACHMENTS</a></span> <span class="o">=</span> <span class="p">[],</span> <span class="n">poll</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            NewPoll (itd.poll.NewPoll)" href="../poll/#itd.poll.NewPoll">NewPoll</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">wall_recipient</span><span class="p">:</span> <span class="n"><span title="uuid.UUID">UUID</span></span> <span class="o">|</span> <span class="n"><span title="str">str</span></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            User (itd.user.User)" href="../user/#itd.user.User">User</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            Post (itd.post.Post)" href="#itd.post.Post">Post</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
