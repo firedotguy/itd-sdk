@@ -256,8 +256,10 @@ def catch_errors(*exceptions: ITDException):
                     (exception.json_check and exception.json_check(json)) or
 
                     exception.status_code is not None and res.status_code == exception.status_code or
-                    exception.code is not None and json.get('error', {}).get('code') == exception.code or
-                    exception.message is not None and json.get('error', {}).get('message') == exception.message
+                    isinstance(json.get('error'), dict) and (
+                        exception.code is not None and json['error'].get('code') == exception.code or
+                        exception.message is not None and json['error'].get('message') == exception.message
+                    )
                 ):
                     if isinstance(exception, ValidationError):
                         exception.text = json['error']['message']

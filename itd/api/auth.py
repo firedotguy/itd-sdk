@@ -5,11 +5,11 @@ from requests import Response
 
 from itd.base import catch_errors
 from itd.request import fetch
-from itd.exceptions import InvalidPasswordError, SamePasswordError, InvalidOldPasswordError, SessionNotFoundError, SessionExpiredError
+from itd.exceptions import InvalidPasswordError, SamePasswordError, InvalidOldPasswordError, SessionNotFoundError, SessionExpiredError, SessionRevokedError
 if TYPE_CHECKING:
     from itd.client import Client
 
-@catch_errors(SessionExpiredError(), SessionNotFoundError())
+@catch_errors(SessionExpiredError(), SessionNotFoundError(), SessionRevokedError())
 def refresh_token(client: Client) -> Response:
     return fetch(client, 'post', 'v1/auth/refresh')
 

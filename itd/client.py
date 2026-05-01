@@ -66,8 +66,8 @@ class Client:
     refresh_token: str | None = None
     _user = None
 
-    def __init__(self, refresh_token: str | None = None, access_token: str | None = None, config: Config = Config()):
-        l.info('init client refresh=%s access=%s', refresh_token is not None, access_token is not None)
+    def __init__(self, refresh: str | None = None, access: str | None = None, config: Config = Config()):
+        l.info('init client refresh=%s access=%s', refresh is not None, access is not None)
         self.config = config
         self.last_actions: dict[str, datetime] = {}
 
@@ -75,13 +75,13 @@ class Client:
         adapter = HTTPAdapter(pool_connections=1, pool_maxsize=10, pool_block=False) # idk what is this, (claude added) just for better stability
         self.session.mount('https://', adapter)
 
-        if access_token:
-            self.access_token = access_token.replace('Bearer ', '')
+        if access:
+            self.access_token = access.replace('Bearer ', '')
 
-        if refresh_token:
-            self.refresh_token = refresh_token
-            self.session.cookies.set('refresh_token', refresh_token, path='/', domain=self.config.url)
-            if access_token is None:
+        if refresh:
+            self.refresh_token = refresh
+            self.session.cookies.set('refresh_token', refresh, path='/', domain=self.config.url)
+            if access is None:
                 self.refresh_auth()
 
         if _default_client is None or config.is_default:
@@ -144,22 +144,11 @@ class Client:
         return self._user
 
 
-    def logout(self) -> dict:
+    def logout(self):
         """Выход из аккаунта
-
-        Raises:
-            NoCookie: Нет cookie
-
-        Returns:
-            dict: Ответ API
         """
-        # if not self.cookies:
-            # raise NoCookie()
-
         res = logout(self)
         res.raise_for_status()
-
-        return res.json()
 
 
     def change_password(self, old: str, new: str) -> None:
@@ -175,8 +164,8 @@ class Client:
             InvalidOldPasswordError: Старый пароль неверный
 
         """
-        if not self.refresh_token:
-            raise InsufficientAuthLevelError()
+        # if not self.refresh_token:
+            # raise InsufficientAuthLevelError()
 
         change_password(self, old, new)
 

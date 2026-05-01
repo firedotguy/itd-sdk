@@ -21,11 +21,11 @@ class ValidationError(ValidateError):
     text = 'Failed validation'
     code = 'VALIDATION_ERROR'
     status_code = 422
-    json_check = lambda json: 'found' in json
+    json_check = staticmethod(lambda json: 'found' in json)
 
 class RateLimitError(ITDException):
     code = 'RATE_LIMIT_EXCEEDED'
-    json_check = lambda json: json.get('error') == 'Too Many Requests'
+    json_check = staticmethod(lambda json: json.get('error') == 'Too Many Requests')
 
     def __init__(self, retry_after: int = 0):
         self.retry_after = retry_after
@@ -80,7 +80,8 @@ class UnauthorizedError(AuthError):
 
 class InvalidAccessTokenError(AuthError):
     text = 'Invalid access token'
-    text_check = lambda text: text == 'UNAUTHORIZED'
+    text_check = staticmethod(lambda text: text == 'UNAUTHORIZED')
+    json_check = staticmethod(lambda json: json.get('error') == 'invalid signature')
 
 class SessionRevokedError(AuthError):
     code = 'SESSION_REVOKED'
