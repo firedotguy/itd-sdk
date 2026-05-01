@@ -10,7 +10,7 @@ from itd._default import _default_client, set_default_client
 from itd.exceptions import UnauthorizedError, InsufficientAuthLevelError
 from itd.hashtag import Hashtag
 from itd.request import fetch, decode_jwt_payload
-from itd.enums import RateLimitMode, All, DebugResponseMode, ParseMode
+from itd.enums import RateLimitMode, All, DebugResponseMode, ParseMode, Batch, BATCH
 from itd.user import Me, User
 from itd.api.auth import refresh_token, change_password, logout
 from itd.api.search import search
@@ -32,8 +32,8 @@ class Config:
     is_default: bool = False
     userposts_add_pinned_post: bool = True
     auto_load: bool = True
-    load_on_getitem: bool = True
-    load_on_getitem_count: int | All = 1
+    load_on_getitem: int | All | Batch | None = 1
+    load_on_iter: int | All | Batch | None = BATCH
     force_load_lists: bool = False # load lists even if has_more is False
     debug_response: DebugResponseMode = DebugResponseMode.NO
     timeout: float = 30

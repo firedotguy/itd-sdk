@@ -12,8 +12,8 @@ from pydantic_core import PydanticUndefinedType
 
 from itd._default import get_default_client
 from itd.logger import get_logger
-from itd.exceptions import ITDException, ValidationError, RateLimitError, InvalidAccessTokenError, DEFAULT_ERRORS
-from itd.enums import All, ALL, DebugResponseMode, RateLimitMode
+from itd.exceptions import ITDException, ValidationError, RateLimitError, DEFAULT_ERRORS
+from itd.enums import All, ALL, DebugResponseMode, RateLimitMode, BATCH, Batch
 if TYPE_CHECKING:
     from itd.client import Client
 
@@ -107,7 +107,7 @@ class ITDList(ITDBaseModel, list):
 
     # edited by calude, thats so fucking crazy pagination
     # ai begin ---
-    def load(self, count: int | All | None = None, limit: int | None = None, client: Client | None = None):
+    def load(self, count: int | All | Batch = BATCH, limit: int | Batch = BATCH, client: Client | None = None):
         if not (self.has_more or self.client.config.force_load_lists):
             return self
 
@@ -158,32 +158,36 @@ class ITDList(ITDBaseModel, list):
     def _get_objects(data: dict) -> list[dict]:
         return []
 
-    def refresh(self, count: int | All | None = None, client: Client | None = None, limit: int | None = None):
+    def refresh(self, count: int | All | Batch = BATCH, limit: int | Batch = BATCH, client: Client | None = None):
         count = count or len(self)
         self.clear()
         self.cursor = None
         return self.load(count, limit, client)
 
-    def load_all(self, limit: int | None = None, client: Client | None = None):
+    def load_all(self, limit: int | Batch = BATCH, client: Client | None = None):
         return self.load(ALL, limit, client)
 
     def __getitem__(self, index: int):  # pyright: ignore[reportIncompatibleMethodOverride]
-        if index > len(self) - 1 and self.client.config.load_on_getitem:
+        if index > len(self) - 1 and self.client.config.load_on_getitem is not None:
             self._min_total = index + 1
-            if isinstance(self.client.config.load_on_getitem_count, All):
+            if isinstance(self.client.config.load_on_getitem, All):
                 l.debug('getitem load all')
                 self.load_all()
+            elif isinstance(self.client.config.load_on_getitem, Batch):
+                l.debug('getitem load batch')
+                self.load(BATCH)
             else:
-                l.debug('getitem load %s', index - len(self) + self.client.config.load_on_getitem_count)
-                self.load(index - len(self) + self.client.config.load_on_getitem_count)
+                l.debug('getitem load %s', index - len(self) + self.client.config.load_on_getitem)
+                self.load(index - len(self) + self.client.config.load_on_getitem)
         return super().__getitem__(index)
 
     def __next__(self):
+        assert self.client.config.load_on_iter is not None
         if getattr(self, 'total', None) and self.idx >= self.total:
             raise StopIteration()
         if self.idx >= len(self) and (self.has_more or self.client.config.force_load_lists):
             l.debug('not enough items to call next - load')
-            self.load()
+            self.load(self.client.config.load_on_iter)
         if self.idx >= len(self):
             raise StopIteration()
         item = self[self.idx]
@@ -191,6 +195,8 @@ class ITDList(ITDBaseModel, list):
         return item
 
     def __iter__(self):
+        if self.client.config.load_on_iter is None:
+            return super().__iter__()
         self.idx = 0
         return self
 

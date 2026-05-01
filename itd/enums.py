@@ -110,8 +110,12 @@ class Role(Enum):
 class Unset: pass
 UNSET = Unset()
 
+class Batch:
+    def __bool__(self) -> Literal[False]:
+        return False
+BATCH = Batch()
+
 class All:
     def __bool__(self) -> Literal[False]:
         return False
-
 ALL = All()
