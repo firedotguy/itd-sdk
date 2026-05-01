@@ -26,6 +26,11 @@ class NotificationType(Enum):
     COMMENT_MENTION = 'comment_mention'
     WALL_POST = 'wall_post'
 
+class ParseMode(Enum):
+    HTML = 'html'
+    MARKDOWN = 'markdown'
+    NO = 'no'
+
 class NotificationTargetType(Enum):
     POST = 'post'
 

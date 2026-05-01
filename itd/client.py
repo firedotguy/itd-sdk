@@ -10,7 +10,7 @@ from itd._default import _default_client, set_default_client
 from itd.exceptions import UnauthorizedError, InsufficientAuthLevelError
 from itd.hashtag import Hashtag
 from itd.request import fetch, decode_jwt_payload
-from itd.enums import RateLimitMode, All, DebugResponseMode
+from itd.enums import RateLimitMode, All, DebugResponseMode, ParseMode
 from itd.user import Me, User
 from itd.api.auth import refresh_token, change_password, logout
 from itd.api.search import search
@@ -43,7 +43,7 @@ class Config:
     user_agent: str = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0' # my ua btw
     solve_challenge: bool = True
     load_comments_from_post: bool = False
-    # parse_mode = None
+    parse_mode: ParseMode = ParseMode.NO
 
     def __post_init__(self):
         if self.rate_limit_default:

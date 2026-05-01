@@ -7,14 +7,14 @@ from pydantic.fields import FieldInfo
 from itd.base import ITDBaseModel, refresh_wrapper, ITDList
 from itd.client import Client
 from itd.comment import Comment, Comments
-from itd.enums import PostsTab, UserPostSorting, ReportReason, ReportTargetType
+from itd.enums import PostsTab, UserPostSorting, ReportReason, ReportTargetType, ParseMode
 from itd.file import PostAttach
 from itd.hashtag import Hashtag
 from itd.poll import Poll, NewPoll, PollOption
 from itd.report import Report
 from itd.span import Span
 from itd.user import User, _UserBase, Me
-from itd.utils import to_uuid, parse_datetime, format_attachments, ATTACHMENTS
+from itd.utils import to_uuid, parse_datetime, format_attachments, ATTACHMENTS, parse_html, parse_md
 from itd.api.posts import (
     get_post, create_post, like_post, unlike_post, repost, view_post, pin_post, unpin_post,
     delete_post, restore_post, edit_post, get_posts, get_user_posts, get_liked_posts
@@ -102,6 +102,11 @@ class Post(ITDBaseModel):
             wall_recipient = wall_recipient.id
         elif wall_recipient is not None:
             wall_recipient = to_uuid(wall_recipient)
+
+        if (client or instance.client).config.parse_mode == ParseMode.HTML and not spans and content:
+            content, spans = parse_html(content)
+        if (client or instance.client).config.parse_mode == ParseMode.MARKDOWN and not spans and content:
+            content, spans = parse_md(content)
 
         post = create_post(
             instance._client,
@@ -279,6 +284,11 @@ class Post(ITDBaseModel):
         Returns:
             datetime: Время обновления (updatedAt)
         """
+        if (client or self.client).config.parse_mode == ParseMode.HTML and not spans:
+            content, spans = parse_html(content)
+        if (client or self.client).config.parse_mode == ParseMode.MARKDOWN and not spans:
+            content, spans = parse_md(content)
+
         updated_at = parse_datetime(edit_post(client or self.client, self.id, content, [span.model_dump(mode="json") for span in spans]).json()['updatedAt'])
         self.edited_at = updated_at
         self.content = content
