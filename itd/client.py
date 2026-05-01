@@ -34,6 +34,8 @@ class Config:
     auto_load: bool = True
     load_on_getitem: bool = True
     load_on_getitem_count: int | All = 1
+    # load_on_geitem: int | All | Unset = 1
+    # load_on_iter: int | All | Batch | Unset = BATCH
     force_load_lists: bool = False # load lists even if has_more is False
     debug_response: DebugResponseMode = DebugResponseMode.NO
     timeout: float = 30
@@ -44,6 +46,7 @@ class Config:
     solve_challenge: bool = True
     load_comments_from_post: bool = False
     # parse_mode = None
+    # wait_rate_limits = True
 
     def __post_init__(self):
         if self.rate_limit_default:

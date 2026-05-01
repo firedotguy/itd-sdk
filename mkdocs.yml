@@ -30,6 +30,7 @@ extra_css:
 nav:
   - index.md
   - launch.md
+  - concept.md
   - config.md
   - Функции:
     - methods/auth.md
