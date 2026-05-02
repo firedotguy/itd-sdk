@@ -89,6 +89,7 @@ class SessionRevokedError(AuthError):
 
 class AccessTokenExpiredError(AuthError):
     text = 'Token expired'
+    json_check = staticmethod(lambda json: json.get('error') == 'token expired')
 
 
 class PasswordError(ITDException): pass

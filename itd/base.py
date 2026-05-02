@@ -268,9 +268,9 @@ def catch_errors(*exceptions: ITDException):
                     )
                 ):
                     if isinstance(exception, ValidationError):
-                        exception.text = json['error']['message']
-                    if isinstance(exception, RateLimitError) and json['error'] != 'Too Many Requests':
-                        exception.retry_after = json['error'].get('retryAfter', 0)
+                        exception.text = json.get('error', {}).get('message', 'Failed validation')
+                    if isinstance(exception, RateLimitError) and isinstance(json.get('error'), dict):
+                        exception.retry_after = json.get('error', {}).get('retryAfter', 0)
 
                     raise exception
 
