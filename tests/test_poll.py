@@ -12,8 +12,8 @@ POLL_DATA = {
     'createdAt': '2024-12-01T00:00:00Z', # итд 2024 кста
     'question': 'Лучший язык?',
     'options': [
-        {'id': '00000000-0000-0000-0000-000000000010', 'text': 'Python', 'votesCount': 5},
-        {'id': '00000000-0000-0000-0000-000000000011', 'text': 'Rust', 'votesCount': 3},
+        {'id': '00000000-0000-0000-0000-000000000010', 'text': 'Python', 'votesCount': 5, 'position': 0},
+        {'id': '00000000-0000-0000-0000-000000000011', 'text': 'Rust', 'votesCount': 3, 'position': 1},
     ],
     'multipleChoice': False,
     'hasVoted': False,

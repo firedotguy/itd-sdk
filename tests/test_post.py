@@ -53,13 +53,15 @@ def test_repost_updates_state(client, client2):
     before = post.reposts_count
     reposted = post.repost(client=client2)
 
-    assert post.is_reposted
-    assert post.reposts_count == before + 1
-    assert reposted.original_post is not None
-    assert reposted.original_post.id == post.id
+    try:
+        assert post.for_client(client2).is_reposted
+        assert post.reposts_count == before + 1
+        assert reposted.original_post is not None
+        assert reposted.original_post.id == post.id
 
-    reposted.delete(client2)
-    post.delete(client)
+    finally:
+        reposted.delete(client2)
+        post.delete(client)
 
 
 def test_edit_updates_state(owned_post):

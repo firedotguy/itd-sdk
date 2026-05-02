@@ -329,21 +329,29 @@ class User(_UserBase):
 
     def follow(self, client: Client | None = None) -> int:
         self.followers_count = follow(client or self.client, self._identifier).json()['followersCount']
+        if (client or self.client) == self.client:
+            self.is_following = True
+
         assert self.followers_count is not None
         return self.followers_count
 
     def unfollow(self, client: Client | None = None) -> int:
         self.followers_count = unfollow(client or self.client, self._identifier).json()['followersCount']
+        if (client or self.client) == self.client:
+            self.is_following = False
+
         assert self.followers_count is not None
         return self.followers_count
 
     def block(self, client: Client | None = None) -> None:
         block(client or self.client, self._identifier)
-        self.is_blocked = True
+        if (client or self.client) == self.client:
+            self.is_blocking = True
 
     def unblock(self, client: Client | None = None) -> None:
         unblock(client or self.client, self._identifier)
-        self.is_blocked = False
+        if (client or self.client) == self.client:
+            self.is_blocking = False
 
     def post(
         self,
@@ -439,6 +447,12 @@ class Me(_UserBase):
         if isinstance(banner_id, str):
             banner_id = to_uuid(banner_id)
         update_profile(self.client, bio, display_name, username, banner_id)
+        if bio:
+            self.bio = bio
+        if display_name:
+            self.display_name = display_name
+        if username:
+            self.username = username
 
     def update_from_fields(self):
         update_profile(self.client, self.bio, self.display_name, self.username)

@@ -187,7 +187,7 @@ class Post(ITDBaseModel):
         """
         likes = like_post(client or self.client, self.id).json()['likesCount']
         self.likes_count = likes
-        if client == self.client:
+        if (client or self.client) == self.client:
             self.is_liked = True
         return likes
 
@@ -202,7 +202,7 @@ class Post(ITDBaseModel):
         """
         likes = unlike_post(client or self.client, self.id).json()['likesCount']
         self.likes_count = likes
-        if client == self.client:
+        if (client or self.client) == self.client:
             self.is_liked = False
         return likes
 
@@ -218,7 +218,7 @@ class Post(ITDBaseModel):
         """
         post = repost(client or self.client, self.id, content).json()
         self.reposts_count += 1
-        if client == self.client:
+        if (client or self.client) == self.client:
             self.is_reposted = True
 
         return Post._from_dict(post, client=client)
@@ -230,7 +230,7 @@ class Post(ITDBaseModel):
             client (Client | None, optional): Клиент. Defaults to None.
         """
         view_post(client or self.client, self.id)
-        if client == self.client:
+        if (client or self.client) == self.client:
             self.is_viewed = True
         # post can be already viewed, so view will not add; thats why do not change views_count
 
