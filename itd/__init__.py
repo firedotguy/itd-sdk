@@ -3,7 +3,7 @@ from importlib.metadata import version
 __version__ = version("itd-sdk")
 
 from itd.client import Client as ITDClient, Config as ITDConfig
-from itd.clan import Clan
+from itd.clan import Clan, TopClans
 from itd.file import File
 from itd.hashtag import Hashtag
 from itd.notification import Notifications
