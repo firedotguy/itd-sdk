@@ -269,7 +269,7 @@ def catch_errors(*exceptions: ITDException):
                 ):
                     if isinstance(exception, ValidationError):
                         exception.text = json['error']['message']
-                    if isinstance(exception, RateLimitError):
+                    if isinstance(exception, RateLimitError) and json['error'] != 'Too Many Requests':
                         exception.retry_after = json['error'].get('retryAfter', 0)
 
                     raise exception
