@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Callable, TYPE_CHECKING
+from typing import Any, Callable, TYPE_CHECKING, TypeVar
 from functools import wraps
 from time import sleep
 from datetime import datetime, timedelta
@@ -12,8 +12,8 @@ from pydantic_core import PydanticUndefinedType
 
 from itd._default import get_default_client
 from itd.logger import get_logger
-from itd.exceptions import ITDException, ValidationError, RateLimitExceeded, InvalidAccessToken, DEFAULT_ERRORS
-from itd.enums import All, ALL, DebugResponseMode, RateLimitMode
+from itd.exceptions import ITDException, ValidationError, RateLimitError, UnauthorizedError, AccessTokenExpiredError, DEFAULT_ERRORS
+from itd.enums import All, ALL, DebugResponseMode, RateLimitMode, BATCH, Batch
 if TYPE_CHECKING:
     from itd.client import Client
 
@@ -94,8 +94,9 @@ class ITDBaseModel:
         return object.__getattribute__(self, name)
 
 
+T = TypeVar('T', bound=ITDBaseModel)
 
-class ITDList(ITDBaseModel, list):
+class ITDList[T](ITDBaseModel, list[T]):
     _limit: int = 20
     _get_total = None
     _refreshable = False
@@ -107,7 +108,7 @@ class ITDList(ITDBaseModel, list):
 
     # edited by calude, thats so fucking crazy pagination
     # ai begin ---
-    def load(self, count: int | All | None = None, limit: int | None = None, client: Client | None = None):
+    def load(self, count: int | All | Batch = BATCH, limit: int | Batch = BATCH, client: Client | None = None):
         if not (self.has_more or self.client.config.force_load_lists):
             return self
 
@@ -158,32 +159,36 @@ class ITDList(ITDBaseModel, list):
     def _get_objects(data: dict) -> list[dict]:
         return []
 
-    def refresh(self, count: int | All | None = None, client: Client | None = None, limit: int | None = None):
+    def refresh(self, count: int | All | Batch = BATCH, limit: int | Batch = BATCH, client: Client | None = None):
         count = count or len(self)
         self.clear()
         self.cursor = None
         return self.load(count, limit, client)
 
-    def load_all(self, limit: int | None = None, client: Client | None = None):
+    def load_all(self, limit: int | Batch = BATCH, client: Client | None = None):
         return self.load(ALL, limit, client)
 
     def __getitem__(self, index: int):  # pyright: ignore[reportIncompatibleMethodOverride]
-        if index > len(self) - 1 and self.client.config.load_on_getitem:
+        if index > len(self) - 1 and self.client.config.load_on_getitem is not None:
             self._min_total = index + 1
-            if isinstance(self.client.config.load_on_getitem_count, All):
+            if isinstance(self.client.config.load_on_getitem, All):
                 l.debug('getitem load all')
                 self.load_all()
+            elif isinstance(self.client.config.load_on_getitem, Batch):
+                l.debug('getitem load batch')
+                self.load(BATCH)
             else:
-                l.debug('getitem load %s', index - len(self) + self.client.config.load_on_getitem_count)
-                self.load(index - len(self) + self.client.config.load_on_getitem_count)
+                l.debug('getitem load %s', index - len(self) + self.client.config.load_on_getitem)
+                self.load(index - len(self) + self.client.config.load_on_getitem)
         return super().__getitem__(index)
 
     def __next__(self):
+        assert self.client.config.load_on_iter is not None
         if getattr(self, 'total', None) and self.idx >= self.total:
             raise StopIteration()
         if self.idx >= len(self) and (self.has_more or self.client.config.force_load_lists):
             l.debug('not enough items to call next - load')
-            self.load()
+            self.load(self.client.config.load_on_iter)
         if self.idx >= len(self):
             raise StopIteration()
         item = self[self.idx]
@@ -191,6 +196,8 @@ class ITDList(ITDBaseModel, list):
         return item
 
     def __iter__(self):
+        if self.client.config.load_on_iter is None:
+            return super().__iter__()
         self.idx = 0
         return self
 
@@ -229,10 +236,11 @@ def _filter_bytes(args: tuple):
             filtered.append(arg)
     return filtered
 
+# user calls `Me` -> model calls `get_me` -> `catch_errors` wrapper: (`get_me` -> `client.request` -> `fetch` -> responses 401 -> `refresh_auth` from `catch_errors` -> `client.resuest` -> `fetch` -> token refreshed -> `catch_errors` backs to main query -> `get_me` -> `client.request` -> `fetch` -> user fetched) -> model recieves data -> pydantic fills model # hell what the monster i did
 def catch_errors(*exceptions: ITDException):
     def decorator(func):
         @wraps(func)
-        def wrapper(client: Client, *args, **kwargs) -> Response | None:
+        def wrapper(client: Client, *args, _retrying: bool = False, **kwargs) -> Response | None:
             l.info('exec %s %s %s', func.__name__, _filter_bytes(args), kwargs)
             res: Response = func(client, *args, **kwargs)
 
@@ -249,27 +257,25 @@ def catch_errors(*exceptions: ITDException):
                 json = {}
                 l.warning('failed to parse json: %s', res.text[:1000])
 
-            for exception in exceptions + DEFAULT_ERRORS:
+            for exception in DEFAULT_ERRORS + exceptions:
                 if (
-                    getattr(exception, '_reply_comment_user_not_found', False) and res.status_code == 500 and 'Failed query' in res.text or
-                    getattr(exception, '_delete_comment_not_found', False) and res.status_code == 500 and res.text == 'Комментарий не найден' or
-                    getattr(exception, '_liked_posts_user_not_found', False) and res.status_code == 404 and res.text == 'NOT_FOUND' or
-                    isinstance(exception, InvalidAccessToken) and res.text == 'UNAUTHORIZED' or
-                    getattr(exception, '_report_target_not_found', False) and res.status_code == 400 and 'не найден' in json.get('error', {}).get('message', '') or
-                    getattr(exception, '_subscription_not_found', False) and json.get('error') == 'Активная подписка не найдена' or
-                    getattr(exception, '_hashtag_not_found', False) and json.get('data', {}).get('hashtag', '') is None or
-                    getattr(exception, '_notification_read_error', False) and json.get('success') is False or
-                    isinstance(exception, ValidationError) and res.status_code == 422 and 'found' in json or
-                    isinstance(exception, RateLimitExceeded) and json.get('error') == 'Too Many Requests' or
+                    (exception.res_check and exception.res_check(res)) or
+                    (exception.text_check and exception.text_check(res.text)) or
+                    (exception.json_check and exception.json_check(json)) or
 
                     exception.status_code is not None and res.status_code == exception.status_code or
-                    exception.code is not None and json.get('error', {}).get('code') == exception.code or
-                    exception.message is not None and json.get('error', {}).get('message') == exception.message
+                    isinstance(json.get('error'), dict) and (
+                        exception.code is not None and json['error'].get('code') == exception.code or
+                        exception.message is not None and json['error'].get('message') == exception.message
+                    )
                 ):
-                    if isinstance(exception, ValidationError) and json.get('error', {}).get('code') == exception.code:
-                        exception.text = json['error']['message']
-                    if isinstance(exception, RateLimitExceeded) and json.get('error', {}).get('code') == exception.code:
-                        exception.retry_after = json['error'].get('retryAfter', 0)
+                    if isinstance(exception, ValidationError):
+                        exception.text = json.get('error', {}).get('message', 'Failed validation')
+                    if isinstance(exception, RateLimitError) and isinstance(json.get('error'), dict):
+                        exception.retry_after = json.get('error', {}).get('retryAfter', 0)
+                    if isinstance(exception, (UnauthorizedError, AccessTokenExpiredError)) and client.refresh_token and not _retrying:
+                        client.refresh_auth()
+                        return wrapper(client, *args, _retrying=True, **kwargs)
 
                     raise exception
 
@@ -309,7 +315,7 @@ def rate_limit(delay_min: float | None = None, delay_mid: float | None = None, d
             while True:
                 try:
                     return func(client, *args, **kwargs)
-                except RateLimitExceeded as e:
+                except RateLimitError as e:
                     l.info('rate limit on %s; wait %ss', func.__name__, e.retry_after or 10)
                     sleep(e.retry_after or 10)
 

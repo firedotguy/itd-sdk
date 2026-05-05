@@ -4,7 +4,7 @@ import pytest
 
 from itd.user import User, Me, Followers, Following
 from itd.pin import Pin
-from itd.exceptions import PinNotOwned
+from itd.exceptions import PinNotOwnedError
 
 
 @pytest.fixture(scope="module")
@@ -95,28 +95,28 @@ def test_unfollow_decrements_followers_count(client, me2):
         user.follow(client)
 
 
-def test_block_sets_is_blocked(client, me2):
-    user = me2.to_user()
-    if user.is_blocked:
+def test_block_sets_is_blocking(client, me2):
+    user = me2.to_user().for_client(client)
+    if user.is_blocking:
         user.unblock(client)
     try:
         user.block(client)
-        assert user.is_blocked
+        assert user.is_blocking
     finally:
         user.unblock(client)
 
 
-def test_unblock_clears_is_blocked(client, me2):
-    user = me2.to_user()
-    if user.is_blocked:
+def test_unblock_clears_is_blocking(client, me2):
+    user = me2.to_user().for_client(client)
+    if user.is_blocking:
         user.unblock(client)
     user.block(client)
     user.unblock(client)
-    assert not user.is_blocked
+    assert not user.is_blocking
 
 
 def test_set_pin_unknown_slug_raises(me):
-    with pytest.raises(PinNotOwned):
+    with pytest.raises(PinNotOwnedError):
         me.set_pin('__nonexistent_slug_xyz__')
 
 

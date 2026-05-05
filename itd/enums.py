@@ -13,6 +13,12 @@ class DebugResponseMode(Enum):
     AFTER = 'after' # after error checks, beautitfied
     KEYS = 'keys' # display only keys (after)
 
+class UserAgent(Enum):
+    BROWSER = 'browser'
+    SDK = 'sdk'
+    DEFAULT = 'default'
+    EMPTY = 'empty'
+
 class NotificationType(Enum):
     LIKE = 'like'
     COMMENT = 'comment'
@@ -25,6 +31,11 @@ class NotificationType(Enum):
     COMMENT_LIKE = 'comment_reaction'
     COMMENT_MENTION = 'comment_mention'
     WALL_POST = 'wall_post'
+
+class ParseMode(Enum):
+    HTML = 'html'
+    MARKDOWN = 'markdown'
+    NO = 'no'
 
 class NotificationTargetType(Enum):
     POST = 'post'
@@ -105,8 +116,12 @@ class Role(Enum):
 class Unset: pass
 UNSET = Unset()
 
+class Batch:
+    def __bool__(self) -> Literal[False]:
+        return False
+BATCH = Batch()
+
 class All:
     def __bool__(self) -> Literal[False]:
         return False
-
 ALL = All()

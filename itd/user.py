@@ -7,7 +7,7 @@ from pydantic import Field, BaseModel, field_validator
 
 from itd.base import ITDBaseModel, refresh_wrapper, ITDList
 from itd.enums import AccessType, Unset, Role, ReportReason, ReportTargetType
-from itd.exceptions import PinNotOwned
+from itd.exceptions import PinNotOwnedError
 from itd.pin import Pin
 from itd.poll import NewPoll
 from itd.report import Report
@@ -176,12 +176,6 @@ class _UserBase(ITDBaseModel):
     banner: str | None = None
     bio: str | None = None
 
-    followers_count: int | None = Field(None, alias='followersCount')
-    following_count: int | None = Field(None, alias='followingCount')
-    posts_count: int = Field(0, alias='postsCount')
-
-    pinned_post_id: UUID | None = Field(None, alias='pinnedPostId') # none if no or blocked
-
     created_at: datetime | None = Field(None, alias='createdAt') # none if blocked
 
     def __init__(self, username_or_id: str | UUID, client: Client | None = None) -> None:
@@ -223,9 +217,13 @@ class User(_UserBase):
     is_following: bool = Field(False, alias='isFollowing')
     is_followed_by: bool = Field(False, alias='isFollowedBy')
 
-    is_blocked_by: bool = Field(False, alias='isBlockedByMe')
-    is_blocking: bool = Field(False, alias='isBlockedByThem')
+    is_blocked_by: bool = Field(False, alias='isBlockedByThem') # not 100% true, server returns value only if isBlockedByThem is True and isBlockedByMe is False
+    is_blocking: bool = Field(False, alias='isBlockedByMe')
     blocked_at: datetime | None = Field(None, alias='blockedAt')
+
+    followers_count: int | None = Field(None, alias='followersCount')
+    following_count: int | None = Field(None, alias='followingCount')
+    posts_count: int | None = Field(None, alias='postsCount')
 
     wall_access: AccessType | None = Field(None, alias='wallAccess') # none if blocked
     likes_visibility: AccessType | None = Field(None, alias='likesVisibility') # none if blocked
@@ -234,6 +232,8 @@ class User(_UserBase):
     is_subscribed: bool = Field(False, alias='hasNuksta')
     last_seen: datetime | dict | None = Field(None, alias='lastSeen') # none if hidden or blocked
     online: bool = False
+
+    pinned_post_id: UUID | None = Field(None, alias='pinnedPostId') # none if no or blocked
 
     @classmethod
     def _from_dict(cls, data: dict, set_loaded: bool = True, client: Client | None = None):
@@ -329,21 +329,29 @@ class User(_UserBase):
 
     def follow(self, client: Client | None = None) -> int:
         self.followers_count = follow(client or self.client, self._identifier).json()['followersCount']
+        if (client or self.client) == self.client:
+            self.is_following = True
+
         assert self.followers_count is not None
         return self.followers_count
 
     def unfollow(self, client: Client | None = None) -> int:
         self.followers_count = unfollow(client or self.client, self._identifier).json()['followersCount']
+        if (client or self.client) == self.client:
+            self.is_following = False
+
         assert self.followers_count is not None
         return self.followers_count
 
     def block(self, client: Client | None = None) -> None:
         block(client or self.client, self._identifier)
-        self.is_blocked = True
+        if (client or self.client) == self.client:
+            self.is_blocking = True
 
     def unblock(self, client: Client | None = None) -> None:
         unblock(client or self.client, self._identifier)
-        self.is_blocked = False
+        if (client or self.client) == self.client:
+            self.is_blocking = False
 
     def post(
         self,
@@ -382,16 +390,15 @@ class _UserValidate(BaseModel, User):
 class Me(_UserBase):
     _validator = lambda _: _MeValidate
 
-    _followers: 'Followers'
-    _following: 'Following'
-    _blocked: 'Blocked'
-    _pins: list[Pin]
-
     wall_access: AccessType = Field(alias='wallAccess')
     likes_visibility: AccessType = Field(alias='likesVisibility')
     is_private: bool = Field(False, alias='isPrivate')
     is_phone_verified: bool = Field(alias='isPhoneVerified')
     subscription: Subscription
+
+    followers_count: int = Field(alias='followersCount')
+    following_count: int = Field(alias='followingCount')
+    posts_count: int = Field(alias='postsCount')
 
     def __init__(self, client: Client | None = None) -> None:
         super().__init__('me', client)
@@ -411,6 +418,7 @@ class Me(_UserBase):
         for name in _UserValidate.model_fields:
             if hasattr(self, name):
                 setattr(instance, name, getattr(self, name))
+        instance._identifier = self.id
         instance._loaded = False
         return instance
 
@@ -429,7 +437,7 @@ class Me(_UserBase):
     ):
         self.privacy.update(is_private, wall_access, likes_visibility, show_last_seen)
 
-    def update_profile(
+    def update(
         self,
         bio: str | None = None,
         display_name: str | None = None,
@@ -439,6 +447,15 @@ class Me(_UserBase):
         if isinstance(banner_id, str):
             banner_id = to_uuid(banner_id)
         update_profile(self.client, bio, display_name, username, banner_id)
+        if bio:
+            self.bio = bio
+        if display_name:
+            self.display_name = display_name
+        if username:
+            self.username = username
+
+    def update_from_fields(self):
+        update_profile(self.client, self.bio, self.display_name, self.username)
 
     def remove_pin(self) -> None:
         if object.__getattribute__(self, 'pin'):
@@ -457,12 +474,12 @@ class Me(_UserBase):
             if pins:
                 pins[0].set()
             else:
-                raise PinNotOwned(pin)
+                raise PinNotOwnedError(pin)
         else:
             if pin.slug in [p.slug for p in self.pins]:
                 pin.set(self.client) # can be not our pin, so set our client to ensure client is correct
             else:
-                raise PinNotOwned(pin.slug)
+                raise PinNotOwnedError(pin.slug)
 
 
     @property
@@ -516,7 +533,7 @@ class _MeValidate(BaseModel, Me):
 
 
 
-class Followers(ITDList, list[User]):
+class Followers(ITDList[User]):
     _load_with_parent = False
     _user_id: UUID
     cursor: int = 1

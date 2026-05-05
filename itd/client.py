@@ -4,18 +4,19 @@ from datetime import datetime
 from dataclasses import dataclass, field
 
 from requests import Session
+from requests.utils import default_user_agent
 from requests.adapters import HTTPAdapter
 
 from itd._default import _default_client, set_default_client
-from itd.exceptions import Unauthorized, InsufficientAuthLevelError
+from itd.exceptions import UnauthorizedError, InsufficientAuthLevelError, AccessTokenExpiredError
 from itd.hashtag import Hashtag
 from itd.request import fetch, decode_jwt_payload
-from itd.enums import RateLimitMode, All, DebugResponseMode
+from itd.enums import RateLimitMode, All, DebugResponseMode, ParseMode, Batch, BATCH, UserAgent
 from itd.user import Me, User
 from itd.api.auth import refresh_token, change_password, logout
 from itd.api.search import search
 from itd.api.users import get_follow_status
-from itd.utils import to_uuid
+from itd.utils import to_uuid, get_sdk_user_agent
 from itd.logger import get_logger
 
 
@@ -32,21 +33,18 @@ class Config:
     is_default: bool = False
     userposts_add_pinned_post: bool = True
     auto_load: bool = True
-    load_on_getitem: bool = True
-    load_on_getitem_count: int | All = 1
-    # load_on_geitem: int | All | Unset = 1
-    # load_on_iter: int | All | Batch | Unset = BATCH
+    load_on_getitem: int | All | Batch | None = 1
+    load_on_iter: int | All | Batch | None = BATCH
     force_load_lists: bool = False # load lists even if has_more is False
     debug_response: DebugResponseMode = DebugResponseMode.NO
     timeout: float = 30
     timeout_file: float = 120
     url: str = 'xn--d1ah4a.com'
     url_api: str | None = None
-    user_agent: str = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0' # my ua btw
+    user_agent: UserAgent | str = UserAgent.BROWSER
     solve_challenge: bool = True
     load_comments_from_post: bool = False
-    # parse_mode = None
-    # wait_rate_limits = True
+    parse_mode: ParseMode = ParseMode.NO
 
     def __post_init__(self):
         if self.rate_limit_default:
@@ -61,6 +59,18 @@ class Config:
         self._url_api = self.url_api if self.url_api else f'https://{self.url}/api'
         self.url = self.url.split('https://')[0].split('http://')[0]
 
+        match self.user_agent:
+            case UserAgent.DEFAULT:
+                self._user_agent = default_user_agent()
+            case UserAgent.SDK:
+                self._user_agent = get_sdk_user_agent()
+            case UserAgent.EMPTY:
+                self._user_agent = ''
+            case UserAgent.BROWSER:
+                self._user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0'
+            case _:
+                self._user_agent = self.user_agent
+
 
 
 
@@ -69,8 +79,8 @@ class Client:
     refresh_token: str | None = None
     _user = None
 
-    def __init__(self, refresh_token: str | None = None, access_token: str | None = None, config: Config = Config()):
-        l.info('init client refresh=%s access=%s', refresh_token is not None, access_token is not None)
+    def __init__(self, refresh: str | None = None, access: str | None = None, config: Config = Config()):
+        l.info('init client refresh=%s access=%s', refresh is not None, access is not None)
         self.config = config
         self.last_actions: dict[str, datetime] = {}
 
@@ -78,13 +88,13 @@ class Client:
         adapter = HTTPAdapter(pool_connections=1, pool_maxsize=10, pool_block=False) # idk what is this, (claude added) just for better stability
         self.session.mount('https://', adapter)
 
-        if access_token:
-            self.access_token = access_token.replace('Bearer ', '')
+        if access:
+            self.access_token = access.replace('Bearer ', '')
 
-        if refresh_token:
-            self.refresh_token = refresh_token
-            self.session.cookies.set('refresh_token', refresh_token, path='/', domain=self.config.url)
-            if access_token is None:
+        if refresh:
+            self.refresh_token = refresh
+            self.session.cookies.set('refresh_token', refresh, path='/', domain=self.config.url)
+            if access is None:
                 self.refresh_auth()
 
         if _default_client is None or config.is_default:
@@ -108,7 +118,7 @@ class Client:
 
         try:
             return _fetch()
-        except Unauthorized:
+        except (UnauthorizedError, AccessTokenExpiredError):
             self.refresh_auth()
             return _fetch()
 
@@ -147,22 +157,11 @@ class Client:
         return self._user
 
 
-    def logout(self) -> dict:
+    def logout(self):
         """Выход из аккаунта
-
-        Raises:
-            NoCookie: Нет cookie
-
-        Returns:
-            dict: Ответ API
         """
-        # if not self.cookies:
-            # raise NoCookie()
-
         res = logout(self)
         res.raise_for_status()
-
-        return res.json()
 
 
     def change_password(self, old: str, new: str) -> None:
@@ -174,12 +173,12 @@ class Client:
 
         Raises:
             NoCookie: Нет cookie
-            SamePassword: Одинаковые пароли
-            InvalidOldPassword: Старый пароль неверный
+            SamePasswordError: Одинаковые пароли
+            InvalidOldPasswordError: Старый пароль неверный
 
         """
-        if not self.refresh_token:
-            raise InsufficientAuthLevelError()
+        # if not self.refresh_token:
+            # raise InsufficientAuthLevelError()
 
         change_password(self, old, new)
 

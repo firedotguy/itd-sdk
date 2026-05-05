@@ -7,14 +7,14 @@ from pydantic.fields import FieldInfo
 from itd.base import ITDBaseModel, refresh_wrapper, ITDList
 from itd.client import Client
 from itd.comment import Comment, Comments
-from itd.enums import PostsTab, UserPostSorting, ReportReason, ReportTargetType
+from itd.enums import PostsTab, UserPostSorting, ReportReason, ReportTargetType, ParseMode
 from itd.file import PostAttach
 from itd.hashtag import Hashtag
 from itd.poll import Poll, NewPoll, PollOption
 from itd.report import Report
 from itd.span import Span
-from itd.user import User, _UserBase
-from itd.utils import to_uuid, parse_datetime, format_attachments, ATTACHMENTS
+from itd.user import User, _UserBase, Me
+from itd.utils import to_uuid, parse_datetime, format_attachments, ATTACHMENTS, parse_html, parse_md
 from itd.api.posts import (
     get_post, create_post, like_post, unlike_post, repost, view_post, pin_post, unpin_post,
     delete_post, restore_post, edit_post, get_posts, get_user_posts, get_liked_posts
@@ -103,6 +103,11 @@ class Post(ITDBaseModel):
         elif wall_recipient is not None:
             wall_recipient = to_uuid(wall_recipient)
 
+        if (client or instance.client).config.parse_mode == ParseMode.HTML and not spans and content:
+            content, spans = parse_html(content)
+        if (client or instance.client).config.parse_mode == ParseMode.MARKDOWN and not spans and content:
+            content, spans = parse_md(content)
+
         post = create_post(
             instance._client,
             content, [span.model_dump(mode="json") for span in spans],
@@ -182,7 +187,7 @@ class Post(ITDBaseModel):
         """
         likes = like_post(client or self.client, self.id).json()['likesCount']
         self.likes_count = likes
-        if client == self.client:
+        if (client or self.client) == self.client:
             self.is_liked = True
         return likes
 
@@ -197,7 +202,7 @@ class Post(ITDBaseModel):
         """
         likes = unlike_post(client or self.client, self.id).json()['likesCount']
         self.likes_count = likes
-        if client == self.client:
+        if (client or self.client) == self.client:
             self.is_liked = False
         return likes
 
@@ -213,7 +218,7 @@ class Post(ITDBaseModel):
         """
         post = repost(client or self.client, self.id, content).json()
         self.reposts_count += 1
-        if client == self.client:
+        if (client or self.client) == self.client:
             self.is_reposted = True
 
         return Post._from_dict(post, client=client)
@@ -225,7 +230,7 @@ class Post(ITDBaseModel):
             client (Client | None, optional): Клиент. Defaults to None.
         """
         view_post(client or self.client, self.id)
-        if client == self.client:
+        if (client or self.client) == self.client:
             self.is_viewed = True
         # post can be already viewed, so view will not add; thats why do not change views_count
 
@@ -279,6 +284,11 @@ class Post(ITDBaseModel):
         Returns:
             datetime: Время обновления (updatedAt)
         """
+        if (client or self.client).config.parse_mode == ParseMode.HTML and not spans:
+            content, spans = parse_html(content)
+        if (client or self.client).config.parse_mode == ParseMode.MARKDOWN and not spans:
+            content, spans = parse_md(content)
+
         updated_at = parse_datetime(edit_post(client or self.client, self.id, content, [span.model_dump(mode="json") for span in spans]).json()['updatedAt'])
         self.edited_at = updated_at
         self.content = content
@@ -366,7 +376,7 @@ class _PostValidate(BaseModel, Post): # BaseModel MUST be first or you ll have s
 
 
 
-class _BasePosts(ITDList, list[Post]):
+class _BasePosts(ITDList[Post]):
     _limit = 50
 
     @staticmethod
@@ -428,7 +438,9 @@ class UserPosts(_BasePosts):
 
     def __init__(self, user: str | UUID | _UserBase, sorting: UserPostSorting = UserPostSorting.NEW, client: Client | None = None) -> None:
         super().__init__(client)
-        if isinstance(user, _UserBase):
+        if isinstance(user, Me):
+            self.user = user.to_user()
+        elif isinstance(user, _UserBase):
             self.user = user
         else:
             self.user = User(user, client)
