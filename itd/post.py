@@ -461,7 +461,6 @@ class UserPosts(_BasePosts):
     def new(cls, user: str | UUID | _UserBase, client: Client | None = None):
         return cls(user, UserPostSorting.NEW, client)
 
-
     def wait_for_post(self, delay: float = 5, include_pinned_post: bool = False) -> Post:
         self._force_remove_pinned_post = not include_pinned_post
         post = self[0]
