@@ -119,14 +119,16 @@ class ITDList[T](ITDBaseModel, list[T]):
         Returns:
             list[T]: Весь список (с новыми объектами)
         """
-        if not (self.has_more or self.client.config.force_load_lists):
+        if not (self.has_more or (client or self.client).config.force_load_lists):
+            l.warning('skip load because has_more=False')
             return self
 
         limit = limit or self._limit
         if isinstance(count, int) and count < limit:
             limit = count
+        l.debug('load %s count=%s limit=%s', self.__class__.__name__.lower(), count, limit)
 
-        # None = load one batch (limit), All = load everything, int = load exactly N
+        # Batch = load one batch (limit), All = load everything, int = load exactly N
         left = None if isinstance(count, All) else (count or limit)
 
         while left is None or left > 0:
@@ -142,10 +144,15 @@ class ITDList[T](ITDBaseModel, list[T]):
                 if getattr(self, '_min_total', None) and self._min_total > self.total:
                     raise IndexError(f'Given index ({self._min_total - 1}) is too high. Total items is {self.total}')
 
-            if left is not None:
-                left -= len(objects)
+            length = len(objects)
+            if objects and (client or self.client).config.userposts_add_pinned_post and length == batch + 1: # skip pinned post
+                length -= 1
+            l.debug('%s', objects)
 
-            l.info('fetched %s %s (was %s) cursor=%s has_more=%s', len(objects), self.__class__.__name__.lower(), len(self), self.cursor, self.has_more)
+            if left is not None:
+                left -= length
+
+            l.info('fetched %s %s (was %s) cursor=%s has_more=%s', length, self.__class__.__name__.lower(), len(self), self.cursor, self.has_more)
             self._extend(objects, client or self.client)
 
             if not self.has_more or not objects:
@@ -180,9 +187,14 @@ class ITDList[T](ITDBaseModel, list[T]):
         Returns:
             list[T]: Обновленный список
         """
-        count = count or len(self)
+        if count is None:
+            count = len(self)
+            if self and getattr(self[0], 'is_pinned', False): # skip pinned post
+                count -= 1
         self.clear()
         self.cursor = None
+        self.has_more = True # also refresh has_more
+        l.debug('refresh %s count=%s limit=%s', self.__class__.__name__.lower(), str(count), limit)
         return self.load(count, limit, client)
 
     def load_all(self, limit: int | Batch = BATCH, client: Client | None = None) -> list[T]:
