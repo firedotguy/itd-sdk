@@ -3,13 +3,13 @@ from uuid import UUID
 from typing import TYPE_CHECKING
 
 from itd.base import catch_errors, rate_limit
-from itd.exceptions import ValidationError, NotFoundError, AlreadyDeletedError, BannedWordError
+from itd.exceptions import ValidationError, NotFoundError, AlreadyDeletedError, BannedWordError, ForbiddenError
 
 if TYPE_CHECKING:
     from itd.client import Client
 
 @rate_limit(5, 20, 80)
-@catch_errors(ValidationError(), NotFoundError('Post'), BannedWordError('Comment'))
+@catch_errors(ValidationError(), NotFoundError('Post'), BannedWordError('Comment'), ForbiddenError('post - some files not owned'))
 def add_comment(client: Client, post_id: UUID, content: str | None = None, attachment_ids: list[UUID] = []):
     return client.request('post', f'posts/{post_id}/comments', {'content': content or '', "attachmentIds": list(map(str, attachment_ids))})
 
