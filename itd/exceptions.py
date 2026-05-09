@@ -129,6 +129,11 @@ class RequiresVerificationError(NoRightsError):
     def __init__(self, obj: str):
         self.text = f'{obj} allowed only for verificated users'
 
+class RequiresSubscriptionError(NoRightsError):
+    code = 'VIDEO_REQUIRES_NUKSTA'
+    def __init__(self, obj: str):
+        self.text = f'{obj} allowed only for users with НУКСТА subscription'
+
 
 class UsernameTakenError(ValidateError):
     code = 'USERNAME_TAKEN'
