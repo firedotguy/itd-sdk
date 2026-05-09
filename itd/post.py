@@ -238,7 +238,7 @@ class Post(ITDBaseModel):
             client (Client | None, optional): Клиент. Defaults to None.
         """
         pin_post(client or self.client, self.id)
-        self.is_pinned_post = True
+        self.is_pinned = True
         (client or self.client).user.pinned_post_id = self.id
 
     def unpin(self, client: Client | None = None) -> None:
@@ -248,7 +248,7 @@ class Post(ITDBaseModel):
             client (Client | None, optional): Клиент. Defaults to None.
         """
         unpin_post(client or self.client, self.id)
-        self.is_pinned_post = False
+        self.is_pinned = False
         (client or self.client).user.pinned_post_id = None
 
     def delete(self, client: Client | None = None) -> None:
