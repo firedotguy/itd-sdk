@@ -370,6 +370,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../methods/posts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Пост
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2640,7 +2668,7 @@
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><span title="itd.base.ITDList">ITDList</span></code>, <code><span title="list">list</span>[<a class="autorefs autorefs-internal" title="            Comment (itd.comment.Comment)" href="#itd.comment.Comment">Comment</a>]</code></p>
+              Bases: <code><span title="itd.base.ITDList">ITDList</span>[<a class="autorefs autorefs-internal" title="            Comment (itd.comment.Comment)" href="#itd.comment.Comment">Comment</a>]</code></p>
 
 
 
@@ -2673,7 +2701,7 @@
 
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nb">all</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nb">all</span><span class="p">:</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><span title="itd.base.ITDList[T]">T</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2783,10 +2811,98 @@
 
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">load</span><span class="p">(</span><span class="n">count</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            All (itd.enums.All)" href="../enums/#itd.enums.All">All</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">load</span><span class="p">(</span><span class="n">count</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            All (itd.enums.All)" href="../enums/#itd.enums.All">All</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="            BATCH (itd.enums.BATCH)" href="../enums/#itd.enums.BATCH">BATCH</a></span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="            BATCH (itd.enums.BATCH)" href="../enums/#itd.enums.BATCH">BATCH</a></span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><span title="itd.base.ITDList[T]">T</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
+
+        <p>Загрузить объекты</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>count</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span> | <a class="autorefs autorefs-internal" title="            All (itd.enums.All)" href="../enums/#itd.enums.All">All</a> | <a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Количество объектов. Defaults to BATCH.</p>
+              </div>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="            BATCH (itd.enums.BATCH)" href="../enums/#itd.enums.BATCH">BATCH</a></code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>limit</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span> | <a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Лимит. Defaults to BATCH.</p>
+              </div>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="            BATCH (itd.enums.BATCH)" href="../enums/#itd.enums.BATCH">BATCH</a></code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>client</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Клиент. Defaults to None.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="list">list</span>[<span title="itd.base.ITDList[T]">T</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>list[T]: Весь список (с новыми объектами)</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
 
     </div>
@@ -2801,10 +2917,82 @@
 
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">load_all</span><span class="p">(</span><span class="n">limit</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">load_all</span><span class="p">(</span><span class="n">limit</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="            BATCH (itd.enums.BATCH)" href="../enums/#itd.enums.BATCH">BATCH</a></span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><span title="itd.base.ITDList[T]">T</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
+
+        <p>Загрузить все объекты (эквивалент self.load(ALL))</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>limit</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span> | <a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Лимит. Defaults to BATCH.</p>
+              </div>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="            BATCH (itd.enums.BATCH)" href="../enums/#itd.enums.BATCH">BATCH</a></code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>client</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Клиент. Defaults to None.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="list">list</span>[<span title="itd.base.ITDList[T]">T</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>list[T]: Список</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
 
     </div>
@@ -2837,10 +3025,98 @@
 
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">refresh</span><span class="p">(</span><span class="n">count</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            All (itd.enums.All)" href="../enums/#itd.enums.All">All</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">refresh</span><span class="p">(</span><span class="n">count</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            All (itd.enums.All)" href="../enums/#itd.enums.All">All</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="            BATCH (itd.enums.BATCH)" href="../enums/#itd.enums.BATCH">BATCH</a></span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><span title="itd.base.ITDList[T]">T</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
+
+        <p>Обновить список (удалить все элементы и загрузить заново)</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>count</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span> | <a class="autorefs autorefs-internal" title="            All (itd.enums.All)" href="../enums/#itd.enums.All">All</a> | <a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Количество объектов (None - количество на данный момент). Defaults to None.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>limit</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span> | <a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Лимит. Defaults to BATCH.</p>
+              </div>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="            BATCH (itd.enums.BATCH)" href="../enums/#itd.enums.BATCH">BATCH</a></code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>client</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Клиент. Defaults to None.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="list">list</span>[<span title="itd.base.ITDList[T]">T</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>list[T]: Обновленный список</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
 
     </div>
@@ -2899,7 +3175,7 @@
 
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nb">all</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nb">all</span><span class="p">:</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><span title="itd.base.ITDList[T]">T</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3009,10 +3285,98 @@
 
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">load</span><span class="p">(</span><span class="n">count</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            All (itd.enums.All)" href="../enums/#itd.enums.All">All</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">load</span><span class="p">(</span><span class="n">count</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            All (itd.enums.All)" href="../enums/#itd.enums.All">All</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="            BATCH (itd.enums.BATCH)" href="../enums/#itd.enums.BATCH">BATCH</a></span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="            BATCH (itd.enums.BATCH)" href="../enums/#itd.enums.BATCH">BATCH</a></span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><span title="itd.base.ITDList[T]">T</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
+
+        <p>Загрузить объекты</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>count</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span> | <a class="autorefs autorefs-internal" title="            All (itd.enums.All)" href="../enums/#itd.enums.All">All</a> | <a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Количество объектов. Defaults to BATCH.</p>
+              </div>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="            BATCH (itd.enums.BATCH)" href="../enums/#itd.enums.BATCH">BATCH</a></code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>limit</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span> | <a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Лимит. Defaults to BATCH.</p>
+              </div>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="            BATCH (itd.enums.BATCH)" href="../enums/#itd.enums.BATCH">BATCH</a></code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>client</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Клиент. Defaults to None.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="list">list</span>[<span title="itd.base.ITDList[T]">T</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>list[T]: Весь список (с новыми объектами)</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
 
     </div>
@@ -3027,10 +3391,82 @@
 
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">load_all</span><span class="p">(</span><span class="n">limit</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">load_all</span><span class="p">(</span><span class="n">limit</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="            BATCH (itd.enums.BATCH)" href="../enums/#itd.enums.BATCH">BATCH</a></span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><span title="itd.base.ITDList[T]">T</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
+
+        <p>Загрузить все объекты (эквивалент self.load(ALL))</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>limit</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span> | <a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Лимит. Defaults to BATCH.</p>
+              </div>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="            BATCH (itd.enums.BATCH)" href="../enums/#itd.enums.BATCH">BATCH</a></code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>client</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Клиент. Defaults to None.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="list">list</span>[<span title="itd.base.ITDList[T]">T</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>list[T]: Список</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
 
     </div>
@@ -3063,10 +3499,98 @@
 
 
 </h4>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">refresh</span><span class="p">(</span><span class="n">count</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            All (itd.enums.All)" href="../enums/#itd.enums.All">All</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">refresh</span><span class="p">(</span><span class="n">count</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            All (itd.enums.All)" href="../enums/#itd.enums.All">All</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="            BATCH (itd.enums.BATCH)" href="../enums/#itd.enums.BATCH">BATCH</a></span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><span title="itd.base.ITDList[T]">T</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
+
+        <p>Обновить список (удалить все элементы и загрузить заново)</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>count</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span> | <a class="autorefs autorefs-internal" title="            All (itd.enums.All)" href="../enums/#itd.enums.All">All</a> | <a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Количество объектов (None - количество на данный момент). Defaults to None.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>limit</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span> | <a class="autorefs autorefs-internal" title="            Batch (itd.enums.Batch)" href="../enums/#itd.enums.Batch">Batch</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Лимит. Defaults to BATCH.</p>
+              </div>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="            BATCH (itd.enums.BATCH)" href="../enums/#itd.enums.BATCH">BATCH</a></code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>client</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="            Client (itd.client.Client)" href="../client/#itd.client.Client">Client</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Клиент. Defaults to None.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="list">list</span>[<span title="itd.base.ITDList[T]">T</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>list[T]: Обновленный список</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
 
     </div>
