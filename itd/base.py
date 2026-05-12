@@ -147,7 +147,6 @@ class ITDList[T](ITDBaseModel, list[T]):
             length = len(objects)
             if objects and (client or self.client).config.userposts_add_pinned_post and length == batch + 1: # skip pinned post
                 length -= 1
-            l.debug('%s', objects)
 
             if left is not None:
                 left -= length
