@@ -2,6 +2,9 @@ from typing import Callable
 
 from requests import Response
 
+from itd.enums import AuthLevel
+
+
 class ITDException(Exception):
     code: str | None = None # ['error']['code']
     message: str | None = None # ['error']['message']
@@ -110,8 +113,8 @@ class InvalidPasswordError(PasswordError, ValidateError):
 class NoRightsError(ITDException): pass
 
 class InsufficientAuthLevelError(NoRightsError):
-    def __init__(self) :
-        self.text = 'Insufficient auth level'
+    def __init__(self, current: AuthLevel, requires: AuthLevel) :
+        self.text = f'Insufficient auth level (current is {current.name}, requires {requires.name})'
 
 class PinNotOwnedError(NoRightsError):
     code = "PIN_NOT_OWNED"
@@ -253,4 +256,4 @@ class ProfileRequiredError(ITDException):
     text = 'No profile. Please create your profile first'
 
 
-DEFAULT_ERRORS = (RateLimitError(), InvalidAccessTokenError(), UnauthorizedError(), AccessTokenExpiredError(), AccountBannedError(), InternalError(), ProfileRequiredError())
+DEFAULT_ERRORS = (RateLimitError(), InvalidAccessTokenError(), UnauthorizedError(), AccessTokenExpiredError(), AccountBannedError(), InternalError(), ProfileRequiredError(), RefreshTokenMissingError())
