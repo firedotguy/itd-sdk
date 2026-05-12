@@ -45,6 +45,8 @@ class Config:
     solve_challenge: bool = True
     load_comments_from_post: bool = False
     parse_mode: ParseMode = ParseMode.NO
+    rate_limit_wait: int = 10 # delay before next attempt (after rate limit error) if retry_after is not provided
+    retry_on_rate_limits: bool = True
 
     def __post_init__(self):
         if self.rate_limit_default:

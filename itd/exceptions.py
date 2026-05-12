@@ -231,6 +231,7 @@ class NotPinnedError(ITDException):
     text = 'Post not found or is not pinned'
 
 class InternalError(ITDException):
+    status_code = 502
     code = 'INTERNAL_ERROR'
     text = 'Internal server error'
 
