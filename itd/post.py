@@ -1,10 +1,9 @@
 from uuid import UUID
 from datetime import datetime
-from typing import Literal, overload
+from typing import Literal, overload, TYPE_CHECKING
 from time import sleep
 
 from pydantic import Field, BaseModel, field_validator
-from pydantic.fields import FieldInfo
 
 from itd.base import ITDBaseModel, refresh_wrapper, ITDList
 from itd.client import Client
@@ -314,13 +313,13 @@ class Post(ITDBaseModel):
     def url(self) -> str:
         return f'https://xn--d1ah4a.com/@{self.author.username}/post/{self.id}'
 
-
-    def __getattribute__(self, name: str):
-        value = super().__getattribute__(name)
-        if name == 'comments' and getattr(value, '_post_id', None) is None:
-            value = Comments()
-            value._post_id = self.id
-        return value
+    if not TYPE_CHECKING:
+        def __getattribute__(self, name: str):
+            value = super().__getattribute__(name)
+            if name == 'comments' and getattr(value, '_post_id', None) is None:
+                value = Comments()
+                value._post_id = self.id
+            return value
 
 
 
