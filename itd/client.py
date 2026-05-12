@@ -6,9 +6,10 @@ from dataclasses import dataclass, field
 from requests import Session
 from requests.utils import default_user_agent
 from requests.adapters import HTTPAdapter
+from requests.exceptions import RequestException
 
 from itd._default import _default_client, set_default_client
-from itd.exceptions import UnauthorizedError, InsufficientAuthLevelError, AccessTokenExpiredError
+from itd.exceptions import UnauthorizedError, InsufficientAuthLevelError, AccessTokenExpiredError, RateLimitError, InternalError
 from itd.hashtag import Hashtag
 from itd.request import fetch, decode_jwt_payload
 from itd.enums import RateLimitMode, All, DebugResponseMode, ParseMode, Batch, BATCH, UserAgent
@@ -45,8 +46,12 @@ class Config:
     solve_challenge: bool = True
     load_comments_from_post: bool = False
     parse_mode: ParseMode = ParseMode.NO
-    rate_limit_wait: int = 10 # delay before next attempt (after rate limit error) if retry_after is not provided
-    retry_on_rate_limits: bool = True
+    rate_limit_wait: int | None = None # DEPRECATED
+    retry_on_rate_limits: bool | None = None # DEPRECATED
+    retry_enabled: bool = True
+    retry_delay: float = 10 # delay before next attempt (after rate limit error) if retry_after is not provided in request
+    retry_max_retries: int | None = None # none for no limit
+    retry_exceptions: tuple[type[Exception]] | list[type[Exception]] | None = None
 
     def __post_init__(self):
         if self.rate_limit_default:
@@ -73,6 +78,14 @@ class Config:
             case _:
                 self._user_agent = self.user_agent
 
+        if self.rate_limit_wait is not None:
+            l.warning('config.rate_limit_wait is deprecated and will be removed in 2.2.0. Please use config.retry_delay')
+            self.retry_delay = self.rate_limit_wait
+        if self.retry_on_rate_limits is not None:
+            l.warning('config.retry_on_rate_limits is deprecated and will be removed in 2.2.0. Please use config.retry_enabled')
+            self.retry_enabled = self.retry_on_rate_limits
+
+        self._retry_exceptions = (tuple(self.retry_exceptions) if isinstance(self.retry_exceptions, list) else self.retry_exceptions) or (RateLimitError, InternalError, RequestException)
 
 
 
