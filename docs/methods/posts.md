@@ -410,7 +410,7 @@ UserPosts('fdg', UserPostSotring.POPULAR)
 
 ### Параметры
 
-#### user <span class="mdx-badge"><span class="mdx-badge__icon">:material-identifier: | :fontawesome-solid-user:</span><span class="mdx-badge__text">UUID | User</span></span>
+#### user <span class="mdx-badge"><span class="mdx-badge__icon">:material-identifier: | :fontawesome-solid-user:</span><span class="mdx-badge__text">UUID | User</span></span> <span class="mdx-badge mdx-badge_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">Required</span></span>
 Пользователь для получения постов с его стены. Может быть объектом пользователя или UUID.
 
 ### Ошибки
@@ -418,6 +418,18 @@ UserPosts('fdg', UserPostSotring.POPULAR)
 
  - `NotFoundError`: пользователь не найден.
  - `ValidationError`: ошибка валидации (может быть из-за слишком большого лимита батча).
+
+### :octicons-clock-16: Ожидание поста
+```py
+post = posts.wait_for_post(
+    delay=5
+)
+```
+Ждет пока появится новый пост и возвращает его.
+
+#### Параметры
+##### delay <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-number-16:</span><span class="mdx-badge__text">float</span></span>
+Задержка при проверке (без учета anti-ratelimit). По умолчанию `5`.
 
 ---
 
@@ -435,3 +447,50 @@ User('fdg').liked_posts
 
  - `NotFoundError`: пользователь не найден.
  - `ValidationError`: ошибка валидации (может быть из-за слишком большого лимита батча).
+
+### :octicons-clock-16: Ожидание поста
+```py
+post = posts.wait_for_post(
+    delay=5
+)
+```
+Ждет пока появится новый пост и возвращает его.
+
+#### Параметры
+##### delay <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-number-16:</span><span class="mdx-badge__text">float</span></span>
+Задержка при проверке (без учета anti-ratelimit). По умолчанию `5`.
+
+---
+
+## :fontawesome-solid-hashtag: Посты по хэштэгу
+```python
+HashtagPosts('fdg')
+```
+или
+```python
+Hashtag('fdg').posts
+```
+### Параметры
+#### hashtag <span class="mdx-badge"><span class="mdx-badge__icon">:material-text: | :fontawesome-solid-hashtag:</span><span class="mdx-badge__text">str | Hashtag</span></span> <span class="mdx-badge mdx-badge_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">Required</span></span>
+Хэштэг. Может быть объектом хэштэга или строкой (без "#").
+
+### Ошибки
+Ошибки появляются только при загрузке постов (posts.load() / for post in posts / posts[0]).
+ - `TooLargeError`: слишком длинный хэштэг.
+ - `NotFoundError`: хэштэг не найден.
+
+### :octicons-clock-16: Ожидание поста
+```py
+post = posts.wait_for_post(
+    delay=5,
+    find_post=True
+)
+```
+Ждет пока появится новый пост и возвращает его.
+
+#### Параметры
+##### delay <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-number-16:</span><span class="mdx-badge__text">float</span></span>
+Задержка при проверке (без учета anti-ratelimit). По умолчанию `5`.
+
+##### find_post <span class="mdx-badge"><span class="mdx-badge__icon">:material-toggle-switch:</span><span class="mdx-badge__text">bool</span></span>
+Нужно ли искать новый пост. Увеличивает время на поиск (до начала проверки и после находа различия в количестве берет полный список постов). По умолчанию `True`.
