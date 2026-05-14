@@ -1,4 +1,4 @@
-# Пост
+# :material-post: Пост
 
 ## Получить
 ```python
@@ -12,12 +12,12 @@ post = Post(
 #### id <span class="mdx-badge"><span class="mdx-badge__icon">:material-identifier:</span><span class="mdx-badge__text">UUID</span></span> <span class="mdx-badge mdx-badge_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">Required</span></span>
 ID поста.
 
-> [!NOTE]
-> Для проверки на существование (`NotFoundError`) вызовите [`post.refresh()`](#Обновить) или любой аттрибут (если не включен [`config.auto_load`](/config.md#auto_load-bool))
+!!! note
+    Для проверки на существование (`NotFoundError`) вызовите [`post.refresh()`](#_9) или любой аттрибут (если не включен [`config.auto_load`](../config.md#auto_load-bool))
 
 ---
 
-## Создать
+## :fontawesome-solid-add: Создать
 ```python
 from itd import Post
 
@@ -37,9 +37,9 @@ post = Post.new(
 Содержание поста.
 
 #### spans <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-list-unordered-16: :material-text-short:</span><span class="mdx-badge__text">list[Span]</span></span>
-Стилизация (жирный, курсив, подчеркивание итд). Автоматически заполняется, если установлен [parse_mode](/config.md#parse_mode-parsemode). У ручного заполнения приоритет большем, чем у дефолтного (если у вас стоит parse_mode в конфиге, и вы напишите свой spans, применится ваш вариант).
+Стилизация (жирный, курсив, подчеркивание итд). Автоматически заполняется, если установлен [parse_mode](../config.md#parse_mode-parsemode). У ручного заполнения приоритет большем, чем у дефолтного (если у вас стоит parse_mode в конфиге, и вы напишите свой spans, применится ваш вариант).
 
-#### wall_recipient <span class="mdx-badge"><span class="mdx-badge__icon">:material-identifier: | :fontawesome-regular-user:</span><span class="mdx-badge__text">UUID | User</span></span>
+#### wall_recipient <span class="mdx-badge"><span class="mdx-badge__icon">:material-identifier: | :fontawesome-solid-user:</span><span class="mdx-badge__text">UUID | User</span></span>
 Получатель поста (для постов на стене). Может быть объектом пользователя или UUID.  
 Для поста на стене также можно использовать `user.post()`.
 
@@ -77,7 +77,7 @@ post = Post.new(
 
 ---
 
-## Проголосовать
+## :material-vote: Проголосовать
 ```python
 post.poll.vote(
     options=UUID('f12c70c7-141e-4dff-9e5b-87f039c7ba58')
@@ -121,7 +121,7 @@ post.poll.options[0].vote()
 
 ---
 
-## Обновить
+## :material-refresh: Обновить
 ```python
 post.refresh()
 ```
@@ -131,7 +131,7 @@ post.refresh()
 
 ---
 
-## Лайкнуть
+## :material-heart: Лайкнуть
 ```python
 likes_count = post.like()
 ```
@@ -142,7 +142,7 @@ likes_count = post.like()
 
 ---
 
-## Убрать лайк
+## :material-heart-off: Убрать лайк
 ```python
 likes_count = post.unlike()
 ```
@@ -153,7 +153,7 @@ likes_count = post.unlike()
 
 ---
 
-## Репостнуть
+## :material-repeat: Репостнуть
 ```python
 post = post.repost(
     content='Какой-то комментарий к репосту'
@@ -169,7 +169,7 @@ post = post.repost(
 
 ---
 
-## Просмотреть
+## :material-eye: Просмотреть
 ```python
 post.view()
 ```
@@ -179,7 +179,7 @@ post.view()
 
 ---
 
-## Закрепить
+## :material-pin: Закрепить
 ```python
 post.pin()
 ```
@@ -190,7 +190,7 @@ post.pin()
 
 ---
 
-## Открепить
+## :material-pin-off: Открепить
 ```python
 post.unpin()
 ```
@@ -200,7 +200,7 @@ post.unpin()
 
 ---
 
-## Удалить
+## :material-delete: Удалить
 ```python
 post.delete()
 ```
@@ -211,7 +211,7 @@ post.delete()
 
 ---
 
-## Закрепить
+## :material-delete-off: Восстановить
 ```python
 post.restore()
 ```
@@ -223,15 +223,15 @@ post.restore()
 
 ---
 
-## Редактировать
+## :material-pencil: Редактировать
 ```python
 edited_at = post.edit(
     content='Новый контент',
     spans=[]
 )
 ```
-> [!WARNING]
-> Редактировать пост можно только в первые 48 часов после публикации. После этого будет выходить ошибка `EditExpiredError`.
+!!! warning
+    Редактировать пост можно только в первые 48 часов после публикации. После этого будет выходить ошибка `EditExpiredError`.
 
 ### Параметры
 
@@ -239,7 +239,7 @@ edited_at = post.edit(
 Содержание поста.
 
 #### spans <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-list-unordered-16: :material-text-short:</span><span class="mdx-badge__text">list[Span]</span></span>
-Стилизация. Автоматически заполняется, если установлен [parse_mode](/config.md#parse_mode-parsemode).
+Стилизация. Автоматически заполняется, если установлен [parse_mode](../config.md#parse_mode-parsemode).
 
 ### Ошибки
  - `NotFoundError` - пост не найден.
@@ -249,7 +249,7 @@ edited_at = post.edit(
 
 ---
 
-## Прокомментировать
+## :material-comment: Прокомментировать
 ```python
 post.add_comment(
     content='комментарие',
@@ -291,7 +291,7 @@ Comment.new(
 
 ---
 
-## Пожаловаться
+## :octicons-report-16: Пожаловаться
 ```python
 from itd.enums import ReportReason
 
@@ -303,8 +303,15 @@ post.report(
 
 ### Параметры
 #### reason <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-report-16:</span><span class="mdx-badge__text">ReportReason</span></span> <span class="mdx-badge mdx-badge_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">Required</span></span>
+Причина жалобы.
+ - `ReportReason.SPAM`: Спам или нежелательный контент
+ - `ReportReason.VIOLENCE`: Насилие или опасные действия
+ - `ReportReason.HATE`: Ненависть или травля
+ - `ReportReason.ADULT`: Контент для взрослых (18+)
+ - `ReportReason.FRAUD`: Дезинформация или обман
+ - `ReportReason.OTHER`: Другое
 
-#### content <span class="mdx-badge"><span class="mdx-badge__icon">:material-text:</span><span class="mdx-badge__text">str</span></span>
+#### description <span class="mdx-badge"><span class="mdx-badge__icon">:material-text:</span><span class="mdx-badge__text">str</span></span>
 Описание жалобы.
 
 ### Ошибки
@@ -314,21 +321,21 @@ post.report(
 
 ---
 
-## Получить ссылку на пост
+## :material-link: Получить ссылку на пост
 ```python
 url = post.url
 ```
 
 ---
 
-# Посты
+# :octicons-list-unordered-16: :material-post: Посты
 
 ## Лента
 ```python
 posts = Posts()
 ```
 
-### Популярное
+### :fontawesome-solid-arrow-trend-up: Популярное
 Обычная лента постов.
 ```python
 posts = Posts()
@@ -342,13 +349,13 @@ posts = Posts.popular()
 posts = Posts.trending()
 ```
 
-### Подписки
+### :fontawesome-solid-user-plus: Подписки
 Лента постов от авторов, на которых вы подписаны.
 ```python
 posts = Posts.following()
 ```
 
-### Лента клана
+### :material-emoticon: Лента клана
 Лента постов от авторов, у которых одинаковый с вами клан.
 ```python
 posts = Posts.clan()
@@ -361,7 +368,7 @@ posts = Posts.clan()
 
 ---
 
-## Посты пользователя
+## :fontawesome-solid-user: Посты пользователя
 ```python
 from itd.enums import UserPostSorting
 
@@ -377,7 +384,7 @@ from itd import User
 posts = User('fdg').posts
 ```
 
-### Новые посты
+### :new: Новые посты
 ```python
 posts = UserPosts('fdg')
 ```
@@ -391,7 +398,7 @@ posts = UserPosts('fdg', UserPostSotring.NEW)
 ```
 Сортировка постов по дате создания.
 
-### Популярные посты
+### :fontawesome-solid-arrow-trend-up: Популярные посты
 ```python
 UserPosts.popular('fdg')
 ```
@@ -403,7 +410,7 @@ UserPosts('fdg', UserPostSotring.POPULAR)
 
 ### Параметры
 
-#### user <span class="mdx-badge"><span class="mdx-badge__icon">:material-identifier: | :fontawesome-regular-user:</span><span class="mdx-badge__text">UUID | User</span></span>
+#### user <span class="mdx-badge"><span class="mdx-badge__icon">:material-identifier: | :fontawesome-solid-user:</span><span class="mdx-badge__text">UUID | User</span></span>
 Пользователь для получения постов с его стены. Может быть объектом пользователя или UUID.
 
 ### Ошибки
@@ -414,7 +421,7 @@ UserPosts('fdg', UserPostSotring.POPULAR)
 
 ---
 
-## Лайкнутые посты пользователя
+## :material-heart: Лайкнутые посты пользователя
 ```python
 LikedPosts('fdg')
 ```
@@ -422,3 +429,9 @@ LikedPosts('fdg')
 ```python
 User('fdg').liked_posts
 ```
+
+### Ошибки
+Ошибки появляются только при загрузке постов (`posts.load()` / `for post in posts` / `posts[0]`).
+
+ - `NotFoundError`: пользователь не найден.
+ - `ValidationError`: ошибка валидации (может быть из-за слишком большого лимита батча).

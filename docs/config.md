@@ -40,30 +40,32 @@ ITDClient('xxx', config=config)
 Добавлять ли закрепленный пост при получении постов пользователя (`UserPosts`). Для этого потребуется отдельный запрос. По умолчанию `True`.
 
 #### auto_load <span class="mdx-badge"><span class="mdx-badge__icon">:material-toggle-switch:</span><span class="mdx-badge__text">bool</span></span>
-Нужно ли автоматически загружать данные при попытке получение (перехват в `__getattribute__`). Если выключено, то для получения данных придется перед получением писать `obj.refresh()`.  
-По умолчанию `True`.
+Нужно ли автоматически загружать данные при попытке получение (перехват в `__getattribute__`). Если выключено, то для получения данных придется перед получением писать `obj.refresh()`. По умолчанию `True`.
 
-#### load_on_getitem <span class="mdx-badge"><span class="mdx-badge__icon">:material-toggle-switch:</span><span class="mdx-badge__text">bool</span></span>
-Количество доп. загружаемых объектов при попытке получить еще не загруженный элемент списка (например `Posts()[10]`). Может выдать `AttributeError`, если даже после загрузки всех объектов количество меньше желаемого индекса, или если известно общее количество объектов и индекс будет больше него. По умолчанию `1`. `All` - загрузить все. `Batch` - загрузить следующий батч (следующий по курсору).
+#### load_on_getitem <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-number-16: | ALL | BATCH</span><span class="mdx-badge__text">int | All | Batch</span></span>
+Количество загружаемых объектов при попытке получить еще не загруженный элемент списка (например `Posts()[10]`). Может выдать `AttributeError`, если даже после загрузки всех объектов количество меньше желаемого индекса, или если известно общее количество объектов и индекс будет больше него. По умолчанию `1`. `All` - загрузить все. `Batch` - загрузить следующий батч (следующий по курсору). `None` - выключить авто загрузку.
 
 !!! example
     ```python
-    config.load_on_getitem_count = 1
+    config.load_on_getitem = 1
     posts[5]
     len(posts) # 6
 
-    config.load_on_getitem_count = 5
+    config.load_on_getitem = 5
     posts[6]
     len(posts) # 12
 
-    config.load_on_getitem_count = ALL
+    config.load_on_getitem = ALL
     posts[7]
     len(posts) # 50
 
     posts.clear()
-    config.load_on_getitem_count = 0
+    config.load_on_getitem = None
     posts[8] # AttributeError
     ```
+
+#### load_on_iter <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-number-16: | ALL | BATCH</span><span class="mdx-badge__text">int | All | Batch</span></span>
+Количество загружаемых объектов при итерации списка (например `for post in Posts()`). По умолчанию `BATCH`. `All` - загрузить все. `Batch` - загрузить следующий батч (следующий по курсору). `None` - выключить авто загрузку.
 
 #### force_load_lists <span class="mdx-badge"><span class="mdx-badge__icon">:material-toggle-switch:</span><span class="mdx-badge__text">bool</span></span>
 Загружать список, даже если `has_more = False`. Может уйти в бесконечный цикл при итерации. По умолчанию `False`.
@@ -91,17 +93,54 @@ ITDClient('xxx', config=config)
 URL к API ИТД (`https://xn--d1ah4a.com/api`). Если не указан, берется из [url](#url-str).
 
 #### user_agent <span class="mdx-badge"><span class="mdx-badge__icon">:material-text:</span><span class="mdx-badge__text">str</span></span>
-User-Agent, под которым обращатся к API ИТД. Если вы делаете свой клиент, можете поставить агент как его имя. По умолчанию стоит дефолтный файрфоксовский user-agent.
+User-Agent, под которым обращатся к API ИТД. Если вы делаете свой клиент, можете поставить агент как его имя. По умолчанию стоит дефолтный браузерный user-agent.
 
 #### solve_challenge <span class="mdx-badge"><span class="mdx-badge__icon">:material-toggle-switch:</span><span class="mdx-badge__text">bool</span></span>
 Нужно ли проходить JS-challenge (защита от скриптов). Иногда включается при запросах к API. Если выключена, скрипт может упасть с ошибкой `fail to parse json`.
 
-### load_comments_from_post <span class="mdx-badge"><span class="mdx-badge__icon">:material-toggle-switch:</span><span class="mdx-badge__text">bool</span></span>
+#### load_comments_from_post <span class="mdx-badge"><span class="mdx-badge__icon">:material-toggle-switch:</span><span class="mdx-badge__text">bool</span></span>
 Нужно ли брать комментарии из уже полученного поста (ИТД дает 3-4 комментария при получении поста). При загрузке следующего батча комментарии могут дублироваться. По умолчанию `False`.
 
-### parse_mode <span class="mdx-badge"><span class="mdx-badge__icon">:simple-markdown:</span><span class="mdx-badge__text">ParseMode</span></span>
+#### parse_mode <span class="mdx-badge"><span class="mdx-badge__icon">:simple-markdown:</span><span class="mdx-badge__text">ParseMode</span></span>
 Режим парсинга (автоматически генерирует `spans` при создании или редоктаировании постов).
  - `ParseMode.NO`: Выключить парсинг
  - `ParseMode.MARKDOWN`: Markdown парсинг
  - `ParseMode.HTML`: HTML парсинг
 По умолчанию `ParseMode.NO`
+
+#### rate_limit_wait <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-number-16:</span><span class="mdx-badge__text">int</span></span>
+!!! danger "Deprecated"
+    Параметр будет удален в 2.2.0. Используйте [retry_delay](#retry_delay-float).
+Время ожидания при рейт-лимите.
+
+#### retry_on_rate_limits <span class="mdx-badge"><span class="mdx-badge__icon">:material-toggle-switch:</span><span class="mdx-badge__text">bool</span></span>
+!!! danger "Deprecated"
+    Параметр будет удален в 2.2.0. Используйте [retry_enabled](#retry_enabled-bool).
+Нужно ли ловить рейт-лимит и автоматически переотправлять вызванную функцию.
+
+#### retry_enabled <span class="mdx-badge"><span class="mdx-badge__icon">:material-toggle-switch:</span><span class="mdx-badge__text">bool</span></span>
+Нужно ли повторять запрос при ошибке сети или рейт лимите. По умолчанию `True`
+
+#### retry_delay <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-number-16:</span><span class="mdx-badge__text">float</span></span>
+Задержка перед следующим повтором запроса.
+
+#### retry_max_retries <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-number-16:</span><span class="mdx-badge__text">int</span></span>
+Максимальное количество попыток повторов запроса. По умолчанию `None`. `None` - без лимита.
+
+#### retry_exceptions <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-list-unordered-16: :material-close-circle:</span><span class="mdx-badge__text">list[type[Exception]] | tuple[type[Exception]]</span></span>
+Список ошибок, при которых нужно повторить запрос. По умолчанию `RateLimitError`, `InternalError` и стандартные ошибки из `requests` (`RequestException`)
+
+#### bypass_auth_level <span class="mdx-badge"><span class="mdx-badge__icon">:material-toggle-switch:</span><span class="mdx-badge__text">bool</span></span>
+Bypass пре-валидации на проверку уровня авторизации. По умолчанию `False`.
+!!! note
+    В sdk существует 3 уровня авторизации:
+
+     - `NO`: **Без авторизации** - доступен поиск
+     - `ACCESS`: **Access-токен** - доступно большинство всех возможностей
+     - `REFRESH`: **Refresh-token** - то же, что и `ACCESS` + обновление токена и выход
+
+    Если вы попытаетесь выполнить запрос который выше по масти, будет вызвана ошибка `InsufficientAuthLevelError`.  
+    Чтобы этой ошибки не было, нужно поставить `bypass_auth_level=True`. Тогда будет вызвана стандартная ошибка от самого ИТД (`RefreshTokenMissingError` / `UnauthorizedError` или похожие)
+
+!!! warning
+    При вызове ошибок `RefreshTokenMissingError` и `UnauthorizedError` может попросить оставить Issue на github. Если у вас включен `bypass_auth_level`, игнорируйте эту просьбу.
