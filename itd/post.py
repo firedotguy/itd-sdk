@@ -157,7 +157,7 @@ class Post(ITDBaseModel):
     wall_recipient_id: UUID | None = Field(None, alias='wallRecipientId')
     wall_recipient: User | None = Field(None, alias='wallRecipient')
     # vs: ViewerSession
-    vs: str # from 13.05 it is string token
+    vs: str | None = None # from 13.05 it is string token  # none for just created posts
 
 
     def __init__(self, id: str | UUID, client: Client | None = None) -> None:
@@ -327,6 +327,9 @@ class Post(ITDBaseModel):
         """
         c = client or self.client
         if c.dwell_tracker is not None:
+            if self.vs is None:
+                self.refresh(c)
+                assert self.vs
             c.dwell_tracker.record(self.id, self.vs, duration, entered_at or datetime.now() - timedelta(seconds=duration), view_source, reason)
         else:
             view_post(c, self.id)
