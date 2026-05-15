@@ -10,4 +10,4 @@ if TYPE_CHECKING:
 @rate_limit()
 @catch_errors()
 def send_dwell(client: Client, objects: list[dict], sid: UUID):
-    return client.request('post', 'api/v1/i', {'e': objects, 'sid': sid})
+    return client.request('post', 'v1/i', {'e': objects, 'sid': str(sid)})
