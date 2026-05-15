@@ -292,6 +292,8 @@ def catch_errors(*exceptions: ITDException):
 
             assert isinstance(res, Response)
             if res.status_code == 204:
+                if client.config.debug_response != DebugResponseMode.NO:
+                    l.debug('no response')
                 return res
 
             if client.config.debug_response == DebugResponseMode.BEFORE:
