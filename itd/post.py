@@ -21,9 +21,9 @@ from itd.api.posts import (
     delete_post, restore_post, edit_post, get_posts, get_user_posts, get_liked_posts
 )
 from itd.api.hashtags import get_posts_by_hashtag
-from itd.api.dwell import send_dwell
+from itd.api.dwell import send_views, send_interactions
 from itd.base import ITDBaseModel, refresh_wrapper, ITDList
-from itd.enums import PostsTab, UserPostSorting, ReportReason, ReportTargetType, ParseMode, ALL, ViewReason, ViewSource
+from itd.enums import PostsTab, UserPostSorting, ReportReason, ReportTargetType, ParseMode, ALL, ViewReason, ViewSource, InteractionType
 from itd.logger import get_logger
 from itd.utils import to_uuid, parse_datetime, format_attachments, ATTACHMENTS, parse_html, parse_md
 if TYPE_CHECKING:
@@ -31,23 +31,28 @@ if TYPE_CHECKING:
 
 l = get_logger('post')
 
-# class ViewerSession:
-#     def __init__(self, payload: dict) -> None:
-#         self.p = self.post_id = UUID(payload['p'])
-#         self.u = self.user_id = UUID(payload['u'])
-#         self.e = self.expires_at = datetime.fromtimestamp(payload['e'])
-#         if isinstance(payload['s'], list):
-#             self.s = self.source = [ViewSource(source) for source in payload['s']]
-#         else:
-#             self.s = self.source = ViewSource(payload['s'])
-
 class DwellEvent(BaseModel):
     vs: str = Field(alias='v')
+    source: ViewSource = Field(alias='s')
+
+
+class InteractionEvent(DwellEvent):
+    type: InteractionType = Field(alias='t')
+    attachment_id: UUID = Field(alias='ai')
+
+class PhotoOpenEvent(InteractionEvent):
+    index: int | None = Field(None, alias='mi')
+
+class VideoProgressEvent(InteractionEvent):
+    played: int = Field(alias='pm')
+    duration: int = Field(alias='dm')
+
+
+class ViewEvent(DwellEvent):
     duration: int = Field(alias='md')
     entered_at: int = Field(alias='et')
     exited_at: int = Field(alias='xt')
     reason: ViewReason = Field(alias='r')
-    source: ViewSource = Field(alias='s')
     source_context: str | None = Field(None, alias='sc')
     has_seen: bool = Field(False, alias='b')
 
@@ -60,25 +65,39 @@ class DwellEvent(BaseModel):
 class DwellTracker(ITDBaseModel):
     def __init__(self, client: Client | None = None) -> None:
         super().__init__(client)
-        self.events: list[DwellEvent] = []
+        self.views: list[ViewEvent] = []
+        self.interactions: list[InteractionEvent] = []
         self.seen_posts: set[UUID] = set()
         self.sid = uuid4()
         self._thread: Thread | None = None
 
-    def send(self) -> bool: # call on app visibilitychange
-        """Отправить события (api/v1/i) и очистить буффер
+    def send_views(self) -> bool: # call on app visibilitychange
+        """Отправить просмотры (api/v1/i) и очистить буффер
 
         Returns:
-            bool: Статус (False если буффер пустой)
+            bool: Статус (False если буффер пустой и ничего не было отправлено)
         """
-        if not self.events:
+        if not self.views:
             return False
-        l.info('dwell send batch')
-        send_dwell(self.client, [event.model_dump(mode='json', by_alias=True) for event in self.events], self.sid)
-        self.events.clear()
+        l.info('dwell send view batch')
+        send_views(self.client, [event.model_dump(mode='json', by_alias=True) for event in self.views], self.sid)
+        self.views.clear()
         return True
 
-    def record(self, id: UUID, vs: str, duration: int, entered_at: datetime, source: ViewSource, source_context: str | None = None, reason: ViewReason = ViewReason.NORMAL):
+    def send_interactions(self) -> bool: # call on app visibilitychange
+        """Отправить события взаимодействий с вложениями (api/v1/x) и очистить буффер
+
+        Returns:
+            bool: Статус (False если буффер пустой и ничего не было отправлено)
+        """
+        if not self.interactions:
+            return False
+        l.info('dwell send interactions batch')
+        send_interactions(self.client, [event.model_dump(mode='json', by_alias=True) for event in self.interactions], self.sid)
+        self.interactions.clear()
+        return True
+
+    def record_view(self, id: UUID, vs: str, duration: int, entered_at: datetime, source: ViewSource, source_context: str | None = None, reason: ViewReason = ViewReason.NORMAL):
         """Записать событие просмотра
 
         Args:
@@ -89,13 +108,19 @@ class DwellTracker(ITDBaseModel):
             reason (ViewReason): Причина просмотра
             source (ViewSource): Страница, с которой произошел просмотр
         """
-        l.info('dwell add record id=%s vs=%s', id, vs)
-        self.events.append(
-            DwellEvent( # stupid pydantic i want validate by name
+        l.info(
+            'dwell add view record id=%s vs=%s duration=%s entered_at=%s exited_at=%s source=%s source_context=%s reason=%s',
+            id, vs, duration, entered_at.strftime('%m.%d %H:%M:%S'),
+            (entered_at + timedelta(milliseconds=duration)).strftime('%m.%d %H:%M:%S'),
+            source.value, source_context, reason.value
+        )
+
+        self.views.append(
+            ViewEvent( # stupid pydantic i want validate by name
                 v=vs,
                 md=duration,
-                et=round(entered_at.timestamp()),
-                xt=round(entered_at.timestamp() + duration),
+                et=round(entered_at.timestamp() * 1000),
+                xt=round(entered_at.timestamp() * 1000) + duration,
                 r=reason,
                 s=source,
                 sc=source_context,
@@ -103,8 +128,57 @@ class DwellTracker(ITDBaseModel):
             )
         )
         self.seen_posts.add(id)
-        if len(self.events) >= self.client.config.dwell_max_buffer:
-            self.send()
+        if len(self.views) >= self.client.config.dwell_max_buffer:
+            self.send_views()
+
+    def record_photo_open(self, vs: str, source: ViewSource, attachment_id: UUID, index: int):
+        """Записать событие просомтра фото
+
+        Args:
+            vs (str): VS
+            source (ViewSource): Страница, с которой проищошел просмотр
+            attachment_id (UUID): ID вложения
+            index (int): Индекс вложения
+        """
+        l.info('dwell add photo open record vs=%s source=%s id=%s index=%s', vs, source.value, attachment_id, index)
+
+        self.interactions.append(
+            PhotoOpenEvent(
+                v=vs,
+                s=source,
+                t=InteractionType.PHOTO_OPEN,
+                ai=attachment_id,
+                mi=index
+            )
+        )
+        if len(self.interactions) >= self.client.config.dwell_max_buffer:
+            self.send_interactions()
+
+    def record_video_progress(self, vs: str, source: ViewSource, attachment_id: UUID, played: int, duration: int):
+        """Записать событие просмотра видео (отправлять каждые 2-3 сек пока запущено видео)
+
+        Args:
+            vs (str): VS
+            source (ViewSource): Страница, с которой произошел просмотр
+            attachment_id (UUID): ID просмотренного вложения
+            played (int): Сколько было просмотренно всего (мс) учитывая повтор (если видео проигралось 2 раза будет 2 * длина видео)
+            duration (int): Сколько было просмотренно от последней записи события (мс)
+        """
+        l.info('dwell add video progress record vs=%s source=%s id=%s played=%s duration=%s', vs, source, attachment_id, played, duration)
+
+        self.interactions.append(
+            VideoProgressEvent(
+                v=vs,
+                s=source,
+                t=InteractionType.VIDEO_PROGRESS,
+                ai=attachment_id,
+                pm=played,
+                dm=duration
+            )
+        )
+        if len(self.interactions) >= self.client.config.dwell_max_buffer:
+            self.send_interactions()
+
 
     def _start_timer(self):
         if not self.client.config.dwell_send_interval:
@@ -113,7 +187,9 @@ class DwellTracker(ITDBaseModel):
         def loop():
             while True:
                 sleep(self.client.config.dwell_send_interval)
-                self.send()
+                self.send_views()
+                self.send_interactions()
+
         self._thread = Thread(target=loop)
         self._thread.daemon = True
         self._thread.start()
@@ -122,7 +198,8 @@ class DwellTracker(ITDBaseModel):
             l.debug('stop dwell timer')
             if self._thread:
                 self._thread.join(timeout=0)
-            self.send()
+            self.send_views()
+            self.send_interactions()
 
         if self.client.config.dwell_save_on_quit:
             register(on_exit)
@@ -340,7 +417,7 @@ class Post(ITDBaseModel):
             if self.vs is None:
                 self.refresh(c)
                 assert self.vs
-            c.dwell_tracker.record(self.id, self.vs, duration, entered_at or datetime.now() - timedelta(seconds=duration), self.source, self.source_context, reason)
+            c.dwell_tracker.record_view(self.id, self.vs, duration, entered_at or datetime.now() - timedelta(milliseconds=duration), self.source, self.source_context, reason)
         else:
             view_post(c, self.id)
         if c == self.client:

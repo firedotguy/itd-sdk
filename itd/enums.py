@@ -1,6 +1,10 @@
 from enum import Enum
 from typing import Literal
 
+class InteractionType(Enum):
+    PHOTO_OPEN = 1
+    VIDEO_PROGRESS = 2
+
 class ViewSource(Enum):
     FEED_GLOBAL = 1
     FEED_FOLLOWING = 2
