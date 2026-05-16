@@ -515,6 +515,10 @@ class Post(ITDBaseModel):
     def url(self) -> str:
         return f'https://xn--d1ah4a.com/@{self.author.username}/post/{self.id}'
 
+    @property
+    def link(self) -> str:
+        return self.url
+
 
 
 class _PostValidate(BaseModel, Post): # BaseModel MUST be first or you ll have some problems with init
