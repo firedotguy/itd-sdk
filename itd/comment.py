@@ -133,6 +133,11 @@ class Comment(ITDBaseModel):
 
 
 class _CommentValidate(BaseModel, Comment):
+    @field_validator('attachments', mode='plain')
+    @classmethod
+    def validate_attachments(cls, attachments: list[dict]):
+        return [CommentAttach(attach) for attach in attachments]
+
     @field_validator('replies', mode='plain')
     @classmethod
     def validate_replies(cls, replies: list[dict]):

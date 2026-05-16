@@ -53,6 +53,9 @@ class ITDBaseModel:
             value._client = client
         object.__setattr__(self, name, value)
 
+    def _post_refresh(self):
+        pass
+
     @property
     def client(self) -> Client:
         return self._client
@@ -264,6 +267,7 @@ def refresh_wrapper(func):
 
         # self._loading = False
         self._loaded = True
+        self._post_refresh()
 
     return wrapper
 

@@ -103,7 +103,7 @@ class DwellTracker(ITDBaseModel):
         Args:
             id (UUID): ID поста
             vs (str): VS
-            duration (int): Время на просмотр (сколько времени пользователь читал пост). Желательно должно быть 250+
+            duration (int): Время на просмотр (сколько времени пользователь читал пост) (мс). Желательно должно быть 250+
             entered_at (datetime): Дата открытия поста (когда пользователь увидел пост)
             reason (ViewReason): Причина просмотра
             source (ViewSource): Страница, с которой произошел просмотр
@@ -161,8 +161,8 @@ class DwellTracker(ITDBaseModel):
             vs (str): VS
             source (ViewSource): Страница, с которой произошел просмотр
             attachment_id (UUID): ID просмотренного вложения
-            played (int): Сколько было просмотренно всего (мс) учитывая повтор (если видео проигралось 2 раза будет 2 * длина видео)
-            duration (int): Сколько было просмотренно от последней записи события (мс)
+            played (int): Сколько было просмотренно (мс) с учетом перепросмотров
+            duration (int): Общая длительность видео (константа) (мс)
         """
         l.info('dwell add video progress record vs=%s source=%s id=%s played=%s duration=%s', vs, source, attachment_id, played, duration)
 
@@ -239,7 +239,7 @@ class Post(ITDBaseModel):
     wall_recipient_id: UUID | None = Field(None, alias='wallRecipientId')
     wall_recipient: User | None = Field(None, alias='wallRecipient')
     # vs: ViewerSession
-    vs: str | None = None # from 13.05 it is string token  # none for just created posts
+    vs: str = Field('') # from 13.05 it is string token
 
 
     def __init__(self, id: str | UUID, source: ViewSource = ViewSource.POST_PAGE, source_context: str | None = None, client: Client | None = None) -> None:
@@ -251,6 +251,12 @@ class Post(ITDBaseModel):
 
     def for_client(self, client: Client):
         return Post(self.id, client=client)
+
+    def _post_refresh(self):
+        self.comments = Comments()
+        self.comments._post_id = self.id
+        for attachment in self.attachments:
+            attachment._post = self
 
 
     @classmethod
@@ -302,7 +308,8 @@ class Post(ITDBaseModel):
         for name, value in validated.__dict__.items():
             setattr(instance, name, value)
 
-        instance._loaded = True
+        instance._loaded = False
+        instance._post_refresh()
 
         return instance
 
@@ -319,6 +326,7 @@ class Post(ITDBaseModel):
         instance._loaded = set_loaded
         instance.source = source
         instance.source_context = source_context
+        instance._post_refresh()
         return instance
 
 
@@ -507,17 +515,14 @@ class Post(ITDBaseModel):
     def url(self) -> str:
         return f'https://xn--d1ah4a.com/@{self.author.username}/post/{self.id}'
 
-    if not TYPE_CHECKING:
-        def __getattribute__(self, name: str):
-            value = super().__getattribute__(name)
-            if name == 'comments' and getattr(value, '_post_id', None) is None:
-                value = Comments()
-                value._post_id = self.id
-            return value
-
 
 
 class _PostValidate(BaseModel, Post): # BaseModel MUST be first or you ll have some problems with init
+    @field_validator('attachments', mode='plain')
+    @classmethod
+    def validate_attachments(cls, attachments: list[dict]):
+        return [PostAttach(attach) for attach in attachments]
+
     @field_validator('edited_at', mode='plain')
     @classmethod
     def validate_edited_at(cls, v: str | None):
