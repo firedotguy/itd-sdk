@@ -35,6 +35,7 @@ nav:
   - Функции:
     - methods/auth.md
     - methods/posts.md
+    - methods/users.md
   - API Reference:
     - api/client.md
     - api/user.md

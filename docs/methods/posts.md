@@ -43,7 +43,7 @@ post = Post.new(
 Получатель поста (для постов на стене). Может быть объектом пользователя или UUID.  
 Для поста на стене также можно использовать `user.post()`.
 
-#### attachments <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-list-unordered-16: :material-identifier: | :octicons-list-unordered-16: :material-file: | :material-identifier: | :material-file:</span><span class="mdx-badge__text">list[UUID | File] | File | UUID</span></span> <span class="mdx-badge mdx-badge_one_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">One of required</span></span>
+#### attachments <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-list-unordered-16: [:material-identifier: | :material-file:] | :material-identifier: | :material-file:</span><span class="mdx-badge__text">list[UUID | File] | File | UUID</span></span> <span class="mdx-badge mdx-badge_one_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">One of required</span></span>
 Вложения. Может быть списком, объектом файла или UUID.
 
 #### poll <span class="mdx-badge"><span class="mdx-badge__icon">:material-poll:</span><span class="mdx-badge__text">NewPoll</span></span> <span class="mdx-badge mdx-badge_one_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">One of required</span></span>
@@ -96,7 +96,7 @@ post.poll.options[0].vote()
 
 ### Параметры
 
-#### options <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-list-unordered-16: :material-identifier:</span><span class="mdx-badge__text">list[UUID | PollOption] | UUID | PollOption</span></span> <span class="mdx-badge mdx-badge_required"> <span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">Required</span></span>
+#### options <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-list-unordered-16: [:material-identifier: | :material-poll:] | :material-poll: | :material-identifier:</span><span class="mdx-badge__text">list[UUID | PollOption] | UUID | PollOption</span></span> <span class="mdx-badge mdx-badge_required"> <span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">Required</span></span>
 Опции для голосования. Может быть списком, объектом опции (можно взять из `poll.options`) или UUID.
 
 !!! example
@@ -279,7 +279,7 @@ Comment.new(
 #### content <span class="mdx-badge"><span class="mdx-badge__icon">:material-text:</span><span class="mdx-badge__text">str</span></span> <span class="mdx-badge mdx-badge_one_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">One of required</span></span>
 Содержание комментария (стилизация не поддерживается на стороне ИТД).
 
-#### attachments <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-list-unordered-16: :material-identifier: | :octicons-list-unordered-16: :material-file: | :material-identifier: | :material-file:</span><span class="mdx-badge__text">list[UUID | File] | File | UUID</span></span> <span class="mdx-badge mdx-badge_one_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">One of required</span></span>
+#### attachments <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-list-unordered-16: [:material-identifier: | :material-file:] | :material-identifier: | :material-file:</span><span class="mdx-badge__text">list[UUID | File] | File | UUID</span></span> <span class="mdx-badge mdx-badge_one_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">One of required</span></span>
 Вложения. Может быть списком, объектом файла или UUID.
 
 ### Ошибки
@@ -304,6 +304,7 @@ post.report(
 ### Параметры
 #### reason <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-report-16:</span><span class="mdx-badge__text">ReportReason</span></span> <span class="mdx-badge mdx-badge_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">Required</span></span>
 Причина жалобы.
+
  - `ReportReason.SPAM`: Спам или нежелательный контент
  - `ReportReason.VIOLENCE`: Насилие или опасные действия
  - `ReportReason.HATE`: Ненависть или травля
@@ -323,7 +324,11 @@ post.report(
 
 ## :material-link: Получить ссылку на пост
 ```python
-url = post.url
+link = post.url
+```
+или
+```python
+link = post.link
 ```
 
 ---
@@ -427,8 +432,7 @@ post = posts.wait_for_post(
 ```
 Ждет пока появится новый пост и возвращает его.
 
-#### Параметры
-##### delay <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-number-16:</span><span class="mdx-badge__text">float</span></span>
+#### delay <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-number-16:</span><span class="mdx-badge__text">float</span></span>
 Задержка при проверке (без учета anti-ratelimit). По умолчанию `5`.
 
 ---
@@ -456,8 +460,7 @@ post = posts.wait_for_post(
 ```
 Ждет пока появится новый пост и возвращает его.
 
-#### Параметры
-##### delay <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-number-16:</span><span class="mdx-badge__text">float</span></span>
+#### delay <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-number-16:</span><span class="mdx-badge__text">float</span></span>
 Задержка при проверке (без учета anti-ratelimit). По умолчанию `5`.
 
 ---
@@ -488,9 +491,8 @@ post = posts.wait_for_post(
 ```
 Ждет пока появится новый пост и возвращает его.
 
-#### Параметры
-##### delay <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-number-16:</span><span class="mdx-badge__text">float</span></span>
+#### delay <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-number-16:</span><span class="mdx-badge__text">float</span></span>
 Задержка при проверке (без учета anti-ratelimit). По умолчанию `5`.
 
-##### find_post <span class="mdx-badge"><span class="mdx-badge__icon">:material-toggle-switch:</span><span class="mdx-badge__text">bool</span></span>
+#### find_post <span class="mdx-badge"><span class="mdx-badge__icon">:material-toggle-switch:</span><span class="mdx-badge__text">bool</span></span>
 Нужно ли искать новый пост. Увеличивает время на поиск (до начала проверки и после находа различия в количестве берет полный список постов). По умолчанию `True`.
