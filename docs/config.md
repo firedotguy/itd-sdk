@@ -144,3 +144,16 @@ Bypass пре-валидации на проверку уровня автори
 
 !!! warning
     При вызове ошибок `RefreshTokenMissingError` и `UnauthorizedError` может попросить оставить Issue на github. Если у вас включен `bypass_auth_level`, игнорируйте эту просьбу.
+
+#### dwell_enabled <span class="mdx-badge"><span class="mdx-badge__icon">:material-toggle-switch:</span><span class="mdx-badge__text">bool</span></span>
+Нужно ли включать dwell tracker для просмотров. По умолчанию `True`.
+
+#### dwell_max_buffer <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-number-16:</span><span class="mdx-badge__text">int</span></span>
+Максимальный буффер dwell tracker`а. После переполнения буффер автоматически отпарвится на сервер и очистится. По умолчанию 20 (в точности как у оф клиента).
+
+#### dwell_send_interval <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-number-16:</span><span class="mdx-badge__text">float</span></span>
+Задержка между запросами dwell tracker`а (через сколько секунд повторять проверку на наличие новых записей, и если есть то отправлять их на сервер). По умолчанию 2 (в точности как у оф клиента).
+
+#### dwell_save_on_quit <span class="mdx-badge"><span class="mdx-badge__icon">:material-toggle-switch:</span><span class="mdx-badge__text">bool</span></span>
+Отправлять ли несохраненные записи перед закрытием скрипта (делается через atexit). По умолчанию `True`.
+
