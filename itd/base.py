@@ -340,12 +340,8 @@ def catch_errors(*exceptions: ITDException):
                         exception.text = json.get('error', {}).get('message', 'Failed validation')
                     if isinstance(exception, RateLimitError) and isinstance(json.get('error'), dict):
                         exception.retry_after = json.get('error', {}).get('retryAfter', 0)
-                    if isinstance(exception, (UnauthorizedError, AccessTokenExpiredError)) and client.refresh_token and not getattr(client, '_refreshing', False):
-                        client._refreshing = True
-                        try:
-                            client.refresh_auth()
-                        finally:
-                            client._refreshing = False
+                    if isinstance(exception, (UnauthorizedError, AccessTokenExpiredError)) and client.refresh_token:
+                        client.refresh_auth()
                         return wrapper(client, *args, **kwargs)
 
                     raise exception

@@ -105,3 +105,8 @@ def like_post(client: Client, id: UUID):
 @catch_errors(NotFoundError('Post'))
 def unlike_post(client: Client, id: UUID):
     return client.request('delete', f'posts/{id}/like')
+
+@rate_limit()
+@catch_errors(ValidationError())
+def get_stats(client: Client, ids: list[UUID]):
+    return client.request('post', 'posts/stats', {'ids': [str(id) for id in ids]}) # if not found, will return empty list
