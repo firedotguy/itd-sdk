@@ -141,14 +141,14 @@ user.post(
 #### content <span class="mdx-badge"><span class="mdx-badge__icon">:material-text:</span><span class="mdx-badge__text">str</span></span> <span class="mdx-badge mdx-badge_one_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">One of required</span></span>
 Содержание поста.
 
-#### spans <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-list-unordered-16: :material-text-short:</span><span class="mdx-badge__text">list[Span]</span></span>
+#### spans <span class="mdx-badge"><span class="mdx-badge__icon">:material-code-brackets: :material-text-short:</span><span class="mdx-badge__text">list[Span]</span></span>
 Стилизация (жирный, курсив, подчеркивание итд). Автоматически заполняется, если установлен [parse_mode](../config.md#parse_mode-parsemode). У ручного заполнения приоритет большем, чем у дефолтного (если у вас стоит parse_mode в конфиге, и вы напишите свой spans, применится ваш вариант).
 
 #### wall_recipient <span class="mdx-badge"><span class="mdx-badge__icon">:material-identifier: | :fontawesome-solid-user:</span><span class="mdx-badge__text">UUID | User</span></span>
 Получатель поста (для постов на стене). Может быть объектом пользователя или UUID.  
 Для поста на стене также можно использовать `user.post()`.
 
-#### attachments <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-list-unordered-16: [:material-identifier: | :material-file:] | :material-identifier: | :material-file:</span><span class="mdx-badge__text">list[UUID | File] | File | UUID</span></span> <span class="mdx-badge mdx-badge_one_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">One of required</span></span>
+#### attachments <span class="mdx-badge"><span class="mdx-badge__icon">:material-code-brackets: [:material-identifier: | :material-file:] | :material-identifier: | :material-file:</span><span class="mdx-badge__text">list[UUID | File] | File | UUID</span></span> <span class="mdx-badge mdx-badge_one_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">One of required</span></span>
 Вложения. Может быть списком, объектом файла или UUID.
 
 #### poll <span class="mdx-badge"><span class="mdx-badge__icon">:material-poll:</span><span class="mdx-badge__text">NewPoll</span></span> <span class="mdx-badge mdx-badge_one_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">One of required</span></span>
@@ -201,23 +201,23 @@ is_success = user.complete_actions_for_likes_visibility()
 
 ---
 
-## :octicons-list-unordered-16: :fontawesome-solid-user: Список подписчиков
+## :material-code-brackets: :fontawesome-solid-user: Список подписчиков
 ```py
 followers = user.followers # list
 ```
 
-## :octicons-list-unordered-16: :fontawesome-solid-user: Список подписок
+## :material-code-brackets: :fontawesome-solid-user: Список подписок
 ```py
 following = user.following # list
 ```
 
-## :octicons-list-unordered-16: :material-post: Список постов
+## :material-code-brackets: :material-post: Список постов
 ```py
 posts = user.posts # UserPosts
 posts.load(10)
 ```
 
-## :octicons-list-unordered-16: :material-post: :material-heart: Список лайкнутых постов
+## :material-code-brackets: :material-post: :material-heart: Список лайкнутых постов
 ```py
 posts = user.liked_posts # LikedPosts
 post.load(5)
@@ -360,24 +360,24 @@ me.remove_pin()
 
 ---
 
-## :octicons-list-unordered-16: :fontawesome-solid-user: Список подписчиков
+## :material-code-brackets: :fontawesome-solid-user: Список подписчиков
 ```py
 followers = me.followers # Followers
 followers.load(5)
 ```
 
-## :octicons-list-unordered-16: :fontawesome-solid-user: Список подписок
+## :material-code-brackets: :fontawesome-solid-user: Список подписок
 ```py
 following = me.following # Following
 following.load(10)
 ```
 
-## :octicons-list-unordered-16: :material-pin: Список пинов
+## :material-code-brackets: :material-pin: Список пинов
 ```py
 pins = me.pins # list
 ```
 
-## :octicons-list-unordered-16: :material-block-helper: Список заблокированных пользователей
+## :material-code-brackets: :material-block-helper: Список заблокированных пользователей
 ```python
 blocked = me.blocked
 blocked.load(5)

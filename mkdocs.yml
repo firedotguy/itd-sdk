@@ -33,7 +33,7 @@ nav:
   - concept.md
   - config.md
   - Функции:
-    - methods/auth.md
+    - methods/client.md
     - methods/posts.md
     - methods/users.md
   - API Reference:

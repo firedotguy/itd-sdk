@@ -32,7 +32,7 @@
     ```python
     from itd import ITDClient
 
-    c = ITDClient('eyXXX')
+    c = ITDClient(access='eyXXX')
     ```
 
 ### Логгер

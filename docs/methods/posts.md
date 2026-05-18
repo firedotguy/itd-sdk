@@ -36,14 +36,14 @@ post = Post.new(
 #### content <span class="mdx-badge"><span class="mdx-badge__icon">:material-text:</span><span class="mdx-badge__text">str</span></span> <span class="mdx-badge mdx-badge_one_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">One of required</span></span>
 Содержание поста.
 
-#### spans <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-list-unordered-16: :material-text-short:</span><span class="mdx-badge__text">list[Span]</span></span>
+#### spans <span class="mdx-badge"><span class="mdx-badge__icon">:material-code-brackets: :material-text-short:</span><span class="mdx-badge__text">list[Span]</span></span>
 Стилизация (жирный, курсив, подчеркивание итд). Автоматически заполняется, если установлен [parse_mode](../config.md#parse_mode-parsemode). У ручного заполнения приоритет большем, чем у дефолтного (если у вас стоит parse_mode в конфиге, и вы напишите свой spans, применится ваш вариант).
 
 #### wall_recipient <span class="mdx-badge"><span class="mdx-badge__icon">:material-identifier: | :fontawesome-solid-user:</span><span class="mdx-badge__text">UUID | User</span></span>
 Получатель поста (для постов на стене). Может быть объектом пользователя или UUID.  
 Для поста на стене также можно использовать `user.post()`.
 
-#### attachments <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-list-unordered-16: [:material-identifier: | :material-file:] | :material-identifier: | :material-file:</span><span class="mdx-badge__text">list[UUID | File] | File | UUID</span></span> <span class="mdx-badge mdx-badge_one_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">One of required</span></span>
+#### attachments <span class="mdx-badge"><span class="mdx-badge__icon">:material-code-brackets: [:material-identifier: | :material-file:] | :material-identifier: | :material-file:</span><span class="mdx-badge__text">list[UUID | File] | File | UUID</span></span> <span class="mdx-badge mdx-badge_one_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">One of required</span></span>
 Вложения. Может быть списком, объектом файла или UUID.
 
 #### poll <span class="mdx-badge"><span class="mdx-badge__icon">:material-poll:</span><span class="mdx-badge__text">NewPoll</span></span> <span class="mdx-badge mdx-badge_one_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">One of required</span></span>
@@ -96,7 +96,7 @@ post.poll.options[0].vote()
 
 ### Параметры
 
-#### options <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-list-unordered-16: [:material-identifier: | :material-poll:] | :material-poll: | :material-identifier:</span><span class="mdx-badge__text">list[UUID | PollOption] | UUID | PollOption</span></span> <span class="mdx-badge mdx-badge_required"> <span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">Required</span></span>
+#### options <span class="mdx-badge"><span class="mdx-badge__icon">:material-code-brackets: [:material-identifier: | :material-poll:] | :material-poll: | :material-identifier:</span><span class="mdx-badge__text">list[UUID | PollOption] | UUID | PollOption</span></span> <span class="mdx-badge mdx-badge_required"> <span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">Required</span></span>
 Опции для голосования. Может быть списком, объектом опции (можно взять из `poll.options`) или UUID.
 
 !!! example
@@ -238,7 +238,7 @@ edited_at = post.edit(
 #### content <span class="mdx-badge"><span class="mdx-badge__icon">:material-text:</span><span class="mdx-badge__text">str</span></span> <span class="mdx-badge mdx-badge_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">Required</span></span>
 Содержание поста.
 
-#### spans <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-list-unordered-16: :material-text-short:</span><span class="mdx-badge__text">list[Span]</span></span>
+#### spans <span class="mdx-badge"><span class="mdx-badge__icon">:material-code-brackets: :material-text-short:</span><span class="mdx-badge__text">list[Span]</span></span>
 Стилизация. Автоматически заполняется, если установлен [parse_mode](../config.md#parse_mode-parsemode).
 
 ### Ошибки
@@ -279,7 +279,7 @@ Comment.new(
 #### content <span class="mdx-badge"><span class="mdx-badge__icon">:material-text:</span><span class="mdx-badge__text">str</span></span> <span class="mdx-badge mdx-badge_one_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">One of required</span></span>
 Содержание комментария (стилизация не поддерживается на стороне ИТД).
 
-#### attachments <span class="mdx-badge"><span class="mdx-badge__icon">:octicons-list-unordered-16: [:material-identifier: | :material-file:] | :material-identifier: | :material-file:</span><span class="mdx-badge__text">list[UUID | File] | File | UUID</span></span> <span class="mdx-badge mdx-badge_one_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">One of required</span></span>
+#### attachments <span class="mdx-badge"><span class="mdx-badge__icon">:material-code-brackets: [:material-identifier: | :material-file:] | :material-identifier: | :material-file:</span><span class="mdx-badge__text">list[UUID | File] | File | UUID</span></span> <span class="mdx-badge mdx-badge_one_required"><span class="mdx-badge__icon">:material-information:</span><span class="mdx-badge__text">One of required</span></span>
 Вложения. Может быть списком, объектом файла или UUID.
 
 ### Ошибки
@@ -333,7 +333,7 @@ link = post.link
 
 ---
 
-# :octicons-list-unordered-16: :material-post: Посты
+# :material-code-brackets: :material-post: Посты
 
 ## Лента
 ```python

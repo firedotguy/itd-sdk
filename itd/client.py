@@ -183,6 +183,10 @@ class Client:
             url (str): URL
             params (dict, optional): Параметры. Defaults to {}.
             files (dict[str, tuple[str, BufferedReader | bytes]], optional): Файлы. Defaults to {}.
+            level (AuthLevel, optional): УРовень авторизации для выполнения. Defaults to AuthLevel.ACCESS.
+
+        Raises:
+            InsufficientAuthLevelError: Недостаточный уровень авторизации
         """
         l.debug('%s %s params=%s authlevel=%s', method.upper(), url, params, level.value)
 
