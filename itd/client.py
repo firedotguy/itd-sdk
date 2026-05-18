@@ -2,6 +2,9 @@ from uuid import UUID
 from _io import BufferedReader
 from datetime import datetime
 from dataclasses import dataclass, field
+from atexit import register
+from time import sleep
+from threading import Thread
 
 from requests import Session
 from requests.utils import default_user_agent
@@ -9,14 +12,15 @@ from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
 
 from itd._default import _default_client, set_default_client
-from itd.exceptions import UnauthorizedError, InsufficientAuthLevelError, AccessTokenExpiredError, RateLimitError, InternalError
+from itd.exceptions import InsufficientAuthLevelError, RateLimitError, InternalError, NotFoundError
 from itd.hashtag import Hashtag
 from itd.request import fetch, decode_jwt_payload
 from itd.enums import RateLimitMode, All, DebugResponseMode, ParseMode, Batch, BATCH, UserAgent, AuthLevel
 from itd.user import Me, User
-from itd.post import DwellTracker
+from itd.post import DwellTracker, Post
 from itd.api.auth import refresh_token, change_password, logout
 from itd.api.search import search
+from itd.api.posts import get_stats
 from itd.api.users import get_follow_status
 from itd.utils import to_uuid, get_sdk_user_agent
 from itd.logger import get_logger
@@ -71,6 +75,9 @@ class Config:
     dwell_send_interval: float = 2
     dwell_save_on_quit: bool = True
 
+    post_update_stats: bool = False
+    post_update_stats_interval: int = 3
+
     def __post_init__(self):
         if self.rate_limit_default:
             self._rate_limit_default = self.rate_limit_default
@@ -108,16 +115,15 @@ class Config:
 
 
 class Client:
-    auth_level: AuthLevel = AuthLevel.NO
-    access_token: str | None = None
-    refresh_token: str | None = None
-    _user = None
-    _refreshing: bool = False
-
     def __init__(self, refresh: str | None = None, access: str | None = None, config: Config = Config()):
         l.info('init client refresh=%s access=%s', refresh is not None, access is not None)
         self.config = config
         self.last_actions: dict[str, datetime] = {}
+        self.auth_level: AuthLevel = AuthLevel.NO
+        self.access_token: str | None = None
+        self.refresh_token: str | None = None
+        self._user: Me | None = None
+        self.visible_posts: list[Post] = []
 
         self.session = Session()
         adapter = HTTPAdapter(pool_connections=1, pool_maxsize=10, pool_block=False) # idk what is this, (claude added) just for better stability
@@ -143,6 +149,32 @@ class Client:
         else:
             self.dwell_tracker = None
 
+        if self.config.post_update_stats:
+            self._start_update_timer()
+
+
+    def _start_update_timer(self):
+        l.debug('start update timer')
+        if not self.config.post_update_stats_interval:
+            return
+
+        def loop():
+            while True:
+                sleep(self.config.post_update_stats_interval)
+                self.update_post_stats()
+
+        self._thread = Thread(target=loop)
+        self._thread.daemon = True
+        self._thread.start()
+
+        def on_exit():
+            l.debug('stop update timer')
+            if self._thread:
+                self._thread.join(timeout=0)
+
+        register(on_exit)
+
+
     def request(self, method: str, url: str, params: dict = {}, files: dict[str, tuple[str, BufferedReader | bytes]] = {}, level=AuthLevel.ACCESS):
         """Сделать запрос
 
@@ -160,17 +192,21 @@ class Client:
         if level >= AuthLevel.ACCESS and self.access_token is None and url != 'v1/auth/refresh':
             self.refresh_auth()
 
-        def _fetch():
-            return fetch(self, method, url, params, files)
+        return fetch(self, method, url, params, files)
 
-        if not self.refresh_token or url == 'v1/auth/refresh':
-            return _fetch()
 
-        try:
-            return _fetch()
-        except (UnauthorizedError, AccessTokenExpiredError):
-            self.refresh_auth()
-            return _fetch()
+    def update_post_stats(self):
+        if len(self.visible_posts) == 0:
+            return
+
+        l.debug('update post stats count=%s', len(self.visible_posts))
+        stats: list[dict] = get_stats(self, [post.id for post in self.visible_posts]).json().get('posts', [])
+        if len(stats) != len(self.visible_posts):
+            raise NotFoundError('Post(s)')
+
+        for post in self.visible_posts:
+            post._set_stats(next((stat for stat in stats if stat['id'] == str(post.id))))
+
 
     def refresh_auth(self) -> str:
         """Обновить access token

@@ -7,6 +7,7 @@ from threading import Thread
 from atexit import register
 
 from pydantic import Field, BaseModel, field_validator, field_serializer
+from pydantic.fields import FieldInfo
 
 from itd.comment import Comment, Comments
 from itd.file import PostAttach
@@ -18,12 +19,14 @@ from itd.user import User, _UserBase, Me
 
 from itd.api.posts import (
     get_post, create_post, like_post, unlike_post, repost, view_post, pin_post, unpin_post,
-    delete_post, restore_post, edit_post, get_posts, get_user_posts, get_liked_posts
+    delete_post, restore_post, edit_post, get_posts, get_user_posts, get_liked_posts,
+    get_stats
 )
 from itd.api.hashtags import get_posts_by_hashtag
 from itd.api.dwell import send_views, send_interactions
 from itd.base import ITDBaseModel, refresh_wrapper, ITDList
 from itd.enums import PostsTab, UserPostSorting, ReportReason, ReportTargetType, ParseMode, ALL, ViewReason, ViewSource, InteractionType
+from itd.exceptions import NotFoundError
 from itd.logger import get_logger
 from itd.utils import to_uuid, parse_datetime, format_attachments, ATTACHMENTS, parse_html, parse_md
 if TYPE_CHECKING:
@@ -181,6 +184,7 @@ class DwellTracker(ITDBaseModel):
 
 
     def _start_timer(self):
+        l.debug('start dwell timer')
         if not self.client.config.dwell_send_interval:
             return
 
@@ -510,6 +514,26 @@ class Post(ITDBaseModel):
 
     def report(self, reason: ReportReason, description: str | None = None, client: Client | None = None) -> Report:
         return Report(self.id, ReportTargetType.POST, reason, description, client or self.client)
+
+    def set_visible(self, client: Client | None = None):
+        (client or self.client).visible_posts.append(self)
+
+    def set_invisible(self, client: Client | None = None):
+        (client or self.client).visible_posts.remove(self)
+
+    def on_stats_update(self): pass # override this
+
+    def update_stats(self, client: Client | None = None):
+        stats = get_stats(client or self.client, [self.id]).json().get('posts', [])
+        if not stats:
+            raise NotFoundError('Post')
+        self._set_stats(stats[0])
+
+    def _set_stats(self, stats: dict):
+        fields = {value.alias or name: name for name, value in _PostValidate.model_fields.items()}
+        for name, value in stats.items():
+            if name in fields:
+                setattr(self, fields[name], value)
 
     @property
     def url(self) -> str:
