@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Callable, TYPE_CHECKING, Iterator, TypeVar
+from typing import Any, Callable, TYPE_CHECKING, Iterator, TypeVar, overload
 from functools import wraps
 from time import sleep
 from datetime import datetime, timedelta
@@ -211,18 +211,33 @@ class ITDList[T](ITDBaseModel, list[T]):
         """
         return self.load(ALL, limit, client)
 
-    def __getitem__(self, index: int) -> T:  # pyright: ignore[reportIncompatibleMethodOverride]
-        if index > len(self) - 1 and self.client.config.load_on_getitem is not None:
-            self._min_total = index + 1
-            if isinstance(self.client.config.load_on_getitem, All):
+    @overload
+    def __getitem__(self, index: int) -> T: ...
+
+    @overload
+    def __getitem__(self, index: slice) -> list[T]: ...
+
+    def __getitem__(self, index: int | slice) -> T | list[T]:  # pyright: ignore[reportIncompatibleMethodOverride]
+
+        if isinstance(index, slice):
+            value: int | None = index.stop
+        else:
+            value = index
+
+        if ((value is not None and value > len(self) - 1) or value is None) and self.client.config.load_on_getitem is not None:
+            if value:
+                self._min_total = value + 1
+
+            if value is None or isinstance(self.client.config.load_on_getitem, All):
                 l.debug('getitem load all')
                 self.load_all()
             elif isinstance(self.client.config.load_on_getitem, Batch):
                 l.debug('getitem load batch')
                 self.load(BATCH)
             else:
-                l.debug('getitem load %s', index - len(self) + self.client.config.load_on_getitem)
-                self.load(index - len(self) + self.client.config.load_on_getitem)
+                l.debug('getitem load %s', value - len(self) + self.client.config.load_on_getitem)
+                self.load(value - len(self) + self.client.config.load_on_getitem)
+
         return super().__getitem__(index)
 
     def __next__(self) -> T:
